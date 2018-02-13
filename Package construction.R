@@ -57,7 +57,7 @@ SchoenerD_ecospat <- function(background,
 # Create documentation of the package.
 # Then put yout function and the documentation in the package.
 
-x <- c("#' A SchoenerD_ecospat Function",
+x.SchoenerD_ecospat <- c("#' A SchoenerD_ecospat Function",
      "#'",
      "#' This function calculates Schoener's D, index of niche overlap between two groups of points",
      "#' @param background Data frame containing background area",
@@ -72,12 +72,16 @@ x <- c("#' A SchoenerD_ecospat Function",
      "#' SchoenerD()",
      "")
 
-write(x, file =  
+write(x.SchoenerD_ecospat, file =  
 paste(packagename, "/R/", functionname, ".R", sep = "")
 )
 
 dump(functionname, file = paste(packagename, '/R/SchoenerD_ecospat.R', sep = ""), append = TRUE)
+setwd("./nichePlot")
+document()
 
+rm('SchoenerD_ecospat')
+detach("package:nichePlot", unload=TRUE)
 #######################################################
 ### Function 2
 #######################################################
@@ -87,20 +91,20 @@ dump(functionname, file = paste(packagename, '/R/SchoenerD_ecospat.R', sep = "")
 getDescendants <- function(
   tree,
   node,
-  curr=NULL){
+  curr = NULL){
   
   if(is.null(curr)) curr <- vector()
-  daughters <- tree$edge[which(tree$edge[,1]==node),2]
-  curr <- c(curr,daughters)
-  w <- which(daughters>=length(tree$tip))
+  daughters <- tree$edge[which(tree$edge[,1] == node), 2]
+  curr <- c(curr, daughters)
+  w <- which(daughters >= length(tree$tip))
   
   if(length(w) > 0) for(i in 1:length(w)) 
-    curr <- getDescendants(tree,daughters[w[i]], curr)
+    curr <- getDescendants(tree, daughters[w[i]], curr)
   
   return(curr)
 }
 
-x<-c("#' getDescendants",
+x.getDescendants <- c("#' getDescendants",
      "#'",
      "#' This function allows you to get descendant node id of the target node.",
      "#' @param tree phylo object.",
@@ -113,11 +117,9 @@ x<-c("#' getDescendants",
      "#' getDescendants(acaena, node = 20)",
      "")
 
-write(x, file =  
-        paste(packagename, "/R/getDescendants.R", sep = "")
-)
+write(x.getDescendants, file = "nichePlot/R/getDescendants.R")
 
-dump(getDescendants, file = paste(packagename, '/R/getDescendants.R', sep = ""), append = TRUE)
+dump(getDescendants,  file = "nichePlot/R/getDescendants.R", append = TRUE)
 
 #######################################################
 ### Function 3
@@ -144,7 +146,7 @@ GetInternalNodeNumber <- function(tree){
   
 }
 
-x <- c("#' GetInternalNodeNumber",
+x.GetInternalNodeNumber <- c("#' GetInternalNodeNumber",
      "#'",
      "#' This function gets node numbers of all internal nodes in the tree.",
      "#' @param tree phylo object.",
@@ -156,7 +158,7 @@ x <- c("#' GetInternalNodeNumber",
      "")
 
 
-write(x, file =  
+write(x.GetInternalNodeNumber, file =  
         paste(packagename, "/R/GetInternalNodeNumber.R", sep = "")
 )
 
@@ -197,7 +199,7 @@ findSisterNode <- function(tree){
   return(res)
 }
 
-x<-c("#' findSisterNode",
+x.findSisterNode <- c("#' findSisterNode",
      "#'",
      "#' This function gets sister node id of all nodes.",
      "#' @param tree phylo object.",
@@ -207,9 +209,7 @@ x<-c("#' findSisterNode",
      "#' findSisterNode(acaena)",
      "")
 
-write(x, file =  
-        paste(packagename, "/R/findSisterNode.R", sep = "")
-)
+write(x.findSisterNode, file = "nichePlot/R/findSisterNode.R")
 
 dump(findSisterNode, file = paste(packagename, '/R/findSisterNode.R', sep = ""), append = TRUE)
 

@@ -1,8 +1,8 @@
 ###################################################
 ### Clade niche
 ###################################################
-
-source("Y:\\R scripts\\3 Acaena niche evolution\\06_Clade pairing.R")
+setwd(".//Acaena-niche-evolution")
+source("06_Clade pairing.R")
 
 # Data import
 da1 <- read.csv("Y:\\acaena_bioclim_landcover_history_inclNAonland.csv")

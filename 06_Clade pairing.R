@@ -6,7 +6,7 @@
 library(adegenet)
 library(geiger)
 library(phytools)
-
+library(nichePlot)
 
 # Import phylogeny tree data
 acaena <- read.nexus("Y:\\Niche change of lineages\\Niche evolution of open habitat species in islands\\Phylogenetic data and trees\\From Angela\\NZ_Acaena_BEAST_output_6gene.tree")

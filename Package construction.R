@@ -14,7 +14,7 @@ library(devtools)
 # Replace "packagename" and "functionname" your object names. 
 
 packagename <- "nichePlot"
-system(paste("rm -Rf", packagename))
+system("rm -Rf nichePlot")
 remove.packages(packagename)
 
 # Create package.

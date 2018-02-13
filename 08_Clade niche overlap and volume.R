@@ -2,36 +2,47 @@
 ### Clade niche overlap/volume
 ###################################################
 
-source("Y:\\R scripts\\3 Acaena niche evolution\\07_ClimateSpace of sister pairs.R")
+# source("Y:\\R scripts\\3 Acaena niche evolution\\07_ClimateSpace of sister pairs.R")
 
 library(ecospat)
 library(adehabitatMA)
 library(adehabitatHR)
 library(raster)
 
-### Original method in ecospat to calculate Schonner's D
+##########################################
+# Data import
+##########################################
+da1 <- read.csv("Y:\\acaena_bioclim_landcover_history_inclNAonland.csv")
+d <- da1[is.na(da1$landCoverChange) == F, ]
 
-SchoenerD <- function(scores, cladedata1, cladedata2) {
-  
-  scores.clim <- scores[, c("PC1", "PC2")]
-  
-  # calculation of occurence density and test of niche equivalency and similarity
-  z1 <- ecospat.grid.clim.dyn(scores.clim, scores.clim, cladedata1[,c("PC1", "PC2")], R = 100)
-  z2 <- ecospat.grid.clim.dyn(scores.clim, scores.clim, cladedata2[,c("PC1", "PC2")], R = 100)
-  
-  res <- list()
-  ## Schoener D
-  res[[1]] <- unlist(ecospat.niche.overlap(z1, z2, cor = T))
-  res[[2]] <- unlist(ecospat.niche.overlap(z1, z2, cor = F))
-  ## Name
-  return(res)
+# sp names
+sname <- colnames(d)[grepl("^Acaena", colnames(d))]
+# Acaena emittens and A. minor have no occurrence in primary and/or secondary habitats.
+s <- sname[ - c(6, 13)]
+
+for(i in sname){
+  d[is.na(d[,i]),i] <- 0
 }
+
+# get env. corrdinates (PCA axes)
+pca <- prcomp(d[, paste("bioclim", c(1, 6, 12, 15), sep = "")],
+              center = TRUE,
+              scale. = TRUE)
+scores <- data.frame(d[, c(colnames(d)[grep("^bioclim", colnames(d))], sname,
+                           "x", "y", "preLandcover", "currentLandcover", "landCoverChange")], pca$x[, 1:2])
+
+extent_x = c(min(scores$PC1), max(scores$PC1))
+extent_y = c(min(scores$PC2), max(scores$PC2))
+
+##########################################
+# calculate Schonner's D
+##########################################
 
 scho <- list()
 
 for(i in 1:length(result)){
 
-  scho[[i]] <- SchoenerD(scores, result[[i]][[1]],  result[[i]][[3]])
+  scho[[i]] <- scores %>% SchoenerD_ecospat(., result[[i]][[1]],  result[[i]][[3]])
   
 }
 

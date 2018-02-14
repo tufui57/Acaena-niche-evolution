@@ -3,8 +3,8 @@
 ########################################################################################
 
 
-library(adegenet)
-library(geiger)
+# library(adegenet)
+# library(geiger)
 library(phytools)
 library(nichePlot)
 

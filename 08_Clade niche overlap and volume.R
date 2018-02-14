@@ -2,12 +2,15 @@
 ### Clade niche overlap/volume
 ###################################################
 
-source("..\\Acaena niche evolution\\07_ClimateSpace of sister pairs.R")
+load(".//Scores.data")
+load(".//Acaena niche evolution//cladePairData.data")
 
 library(ecospat)
-library(adehabitatMA)
-library(adehabitatHR)
-library(raster)
+# library(adehabitatMA)
+# library(adehabitatHR)
+# library(raster)
+library(nichePlot)
+
 
 ##########################################
 # Calculate Schonner's D

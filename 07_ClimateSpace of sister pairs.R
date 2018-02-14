@@ -5,6 +5,10 @@
 setwd(".//Acaena niche evolution")
 source("06_Clade pairing.R")
 
+### Unload libraries
+loadedNamespaces() %>% unloadNamespace()
+
+
 library(tidyverse)
 library(grid)
 library(gridExtra)
@@ -31,7 +35,8 @@ pca <- prcomp(d[, paste("bioclim", c(1, 6, 12, 15), sep = "")],
               center = TRUE,
               scale. = TRUE)
 scores <- data.frame(d[, c(colnames(d)[grep("^bioclim", colnames(d))], sname,
-                           "x", "y", "preLandcover", "currentLandcover", "landCoverChange")], pca$x[, 1:2])
+                           "x", "y" #, "preLandcover", "currentLandcover", "landCoverChange"
+                           )], pca$x[, 1:2])
 
 extent_x = c(min(scores$PC1), max(scores$PC1))
 extent_y = c(min(scores$PC2), max(scores$PC2))
@@ -83,3 +88,4 @@ cladedata <- lapply(number, function(i){
   
   )
 
+save(cladedata, file = "./cladePairData.data")

@@ -43,13 +43,13 @@ SchoenerD_ecospat <- function(background,
   background.clim <- background[, c(axis1, axis2)]
   
   # calculation of occurence density and test of niche equivalency and similarity
-  z1 <- ecospat.grid.clim.dyn(background.clim, background.clim, data1[ ,c(axis1, axis2)], R = 100)
-  z2 <- ecospat.grid.clim.dyn(background.clim, background.clim, data2[ ,c(axis1, axis2)], R = 100)
+  z1 <- ecospat::ecospat.grid.clim.dyn(background.clim, background.clim, data1[ ,c(axis1, axis2)], R = 100)
+  z2 <- ecospat::ecospat.grid.clim.dyn(background.clim, background.clim, data2[ ,c(axis1, axis2)], R = 100)
   
   res <- list()
   ## Schoener D
-  res[[1]] <- unlist(ecospat.niche.overlap(z1, z2, cor = T))
-  res[[2]] <- unlist(ecospat.niche.overlap(z1, z2, cor = F))
+  res[[1]] <- unlist(ecospat::ecospat.niche.overlap(z1, z2, cor = T))
+  res[[2]] <- unlist(ecospat::ecospat.niche.overlap(z1, z2, cor = F))
   ## Name
   return(res)
 }
@@ -77,11 +77,7 @@ paste(packagename, "/R/", functionname, ".R", sep = "")
 )
 
 dump(functionname, file = paste(packagename, '/R/SchoenerD_ecospat.R', sep = ""), append = TRUE)
-setwd("./nichePlot")
-document()
 
-rm('SchoenerD_ecospat')
-detach("package:nichePlot", unload=TRUE)
 #######################################################
 ### Function 2
 #######################################################
@@ -119,7 +115,7 @@ x.getDescendants <- c("#' getDescendants",
 
 write(x.getDescendants, file = "nichePlot/R/getDescendants.R")
 
-dump(getDescendants,  file = "nichePlot/R/getDescendants.R", append = TRUE)
+dump("getDescendants",  file = "nichePlot/R/getDescendants.R", append = TRUE)
 
 #######################################################
 ### Function 3
@@ -128,7 +124,9 @@ dump(getDescendants,  file = "nichePlot/R/getDescendants.R", append = TRUE)
 # Get node numbers of all internal nodes
 GetInternalNodeNumber <- function(tree){
   
-  innode <- (length(tree$tip.label) + 1):max(tree$edge)
+  res <- list()
+  
+  innode <- (length(tree$tip.label) + 1) : max(tree$edge)
   
   for(i in innode){
     sis <- getSisters(tree, i)
@@ -162,7 +160,7 @@ write(x.GetInternalNodeNumber, file =
         paste(packagename, "/R/GetInternalNodeNumber.R", sep = "")
 )
 
-dump(GetInternalNodeNumber, file = paste(packagename, '/R/GetInternalNodeNumber.R', sep = ""), append = TRUE)
+dump("GetInternalNodeNumber", file = paste(packagename, '/R/GetInternalNodeNumber.R', sep = ""), append = TRUE)
 
 #######################################################
 ### Function 4
@@ -205,33 +203,30 @@ x.findSisterNode <- c("#' findSisterNode",
      "#' @param tree phylo object.",
      "#' @keywords phytools",
      "#' @export",
+     "#' @examples",
      "#' acaena <- read.nexus(NZ_Acaena_BEAST_output_6gene.tree)",
      "#' findSisterNode(acaena)",
      "")
 
 write(x.findSisterNode, file = "nichePlot/R/findSisterNode.R")
 
-dump(findSisterNode, file = paste(packagename, '/R/findSisterNode.R', sep = ""), append = TRUE)
-
-
-
-
-
+dump("findSisterNode", file = "nichePlot/R/findSisterNode.R", append = TRUE)
 
 
 
 
 # Remove current function
-setwd(paste("./", packagename, sep=""))
+setwd("./nichePlot")
       
 document()
 
-rm(functionname)
-detach(paste("package:", packagename, sep = ""), unload=TRUE)
+detach("package::nichePlot", unload=TRUE)
 
 
 # Install created package
 
 setwd("..")
-install(packagename)
+install("nichePlot")
 
+library(nichePlot)
+.rs.restartR()

@@ -35,6 +35,8 @@ names(tipssister) <- rownames(nodes)
 # Get node numbers of internal nodes
 allnodesister <- GetInternalNodeNumber(acaena)
 
+allnodesister[1:length(tipssister)] <- tipssister
+
 ########################################################################################
 ### Plot edge length on trees
 ########################################################################################

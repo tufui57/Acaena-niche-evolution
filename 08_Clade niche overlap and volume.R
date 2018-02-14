@@ -2,7 +2,7 @@
 ### Clade niche overlap/volume
 ###################################################
 
-# source("Y:\\R scripts\\3 Acaena niche evolution\\07_ClimateSpace of sister pairs.R")
+source("..\\Acaena niche evolution\\07_ClimateSpace of sister pairs.R")
 
 library(ecospat)
 library(adehabitatMA)
@@ -10,39 +10,14 @@ library(adehabitatHR)
 library(raster)
 
 ##########################################
-# Data import
-##########################################
-da1 <- read.csv("Y:\\acaena_bioclim_landcover_history_inclNAonland.csv")
-d <- da1[is.na(da1$landCoverChange) == F, ]
-
-# sp names
-sname <- colnames(d)[grepl("^Acaena", colnames(d))]
-# Acaena emittens and A. minor have no occurrence in primary and/or secondary habitats.
-s <- sname[ - c(6, 13)]
-
-for(i in sname){
-  d[is.na(d[,i]),i] <- 0
-}
-
-# get env. corrdinates (PCA axes)
-pca <- prcomp(d[, paste("bioclim", c(1, 6, 12, 15), sep = "")],
-              center = TRUE,
-              scale. = TRUE)
-scores <- data.frame(d[, c(colnames(d)[grep("^bioclim", colnames(d))], sname,
-                           "x", "y", "preLandcover", "currentLandcover", "landCoverChange")], pca$x[, 1:2])
-
-extent_x = c(min(scores$PC1), max(scores$PC1))
-extent_y = c(min(scores$PC2), max(scores$PC2))
-
-##########################################
-# calculate Schonner's D
+# Calculate Schonner's D
 ##########################################
 
 scho <- list()
 
-for(i in 1:length(result)){
+for(i in 1:length(cladedata)){
 
-  scho[[i]] <- scores %>% SchoenerD_ecospat(., result[[i]][[1]],  result[[i]][[3]])
+  scho[[i]] <- SchoenerD_ecospat(scores, "PC1", "PC2", cladedata[[i]][[1]],  cladedata[[i]][[3]])
   
 }
 
@@ -53,7 +28,7 @@ for(i in 1:length(scho)){
   dat[[i]] <- x[1,]
 }
 # Name result of schonner's D
-names(dat) <- sapply(result, "[[", 5)
+names(dat) <- sapply(cladedata, "[[", 5)
 # make colums of node numbers
 nodeNo <- strsplit(names(dat), "\ ")
 dat$node1 <- as.numeric(do.call(rbind, lapply(nodeNo, "[[",1)))
@@ -65,14 +40,14 @@ write.csv(do.call(rbind, dat), "Y://clade_schoennerD_acaena.csv")
 ### Clade niche volume
 ###################################################
 
-D <- lapply(lapply(result, "[[", 1), SchoenerD, scores = scores, cladedata2 = scores)
+D <- lapply(lapply(cladedata, "[[", 1), SchoenerD, scores = scores, cladedata2 = scores)
 
 # Collate data
 d2 <- do.call(rbind, lapply(D, "[[",1))
 d3 <- do.call(rbind, lapply(D, "[[",2))
 d4 <- data.frame(cbind(d2,d3))
 colnames(d4) <- c("corrected.D","corrected.I","not corrected.D", "not corrected.I")
-rownames(d4) <- lapply(result, "[[", 5)
+rownames(d4) <- lapply(cladedata, "[[", 5)
 
 # make colums of node numbers
 nodeNo <- strsplit(rownames(d4), "\ ")

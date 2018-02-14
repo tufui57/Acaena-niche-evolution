@@ -2,108 +2,159 @@
 ### Clade niche overlap/volume
 ###################################################
 
-load(".//Scores.data")
+load(".//Acaena niche evolution//Scores.data")
 load(".//Acaena niche evolution//cladePairData.data")
 
 library(ecospat)
-# library(adehabitatMA)
-# library(adehabitatHR)
-# library(raster)
+# tidyverse loads too much DLLs. Load tidyr instead.
+library(tidyr)
 library(nichePlot)
 
 
-##########################################
-# Calculate Schonner's D
-##########################################
-
-scho <- list()
-
-for(i in 1:length(cladedata)){
-
-  scho[[i]] <- SchoenerD_ecospat(scores, "PC1", "PC2", cladedata[[i]][[1]],  cladedata[[i]][[3]])
-  
-}
-
-dat <-list()
-for(i in 1:length(scho)){
-  x <- data.frame(scho[[i]])
-  colnames(x) <- c("ecospat.corrected", "ecospat.uncorrected")
-  dat[[i]] <- x[1,]
-}
-# Name result of schonner's D
-names(dat) <- sapply(cladedata, "[[", 5)
-# make colums of node numbers
-nodeNo <- strsplit(names(dat), "\ ")
-dat$node1 <- as.numeric(do.call(rbind, lapply(nodeNo, "[[",1)))
-dat$node2 <- as.numeric(do.call(rbind, lapply(nodeNo, "[[",2)))
-
-write.csv(do.call(rbind, dat), "Y://clade_schoennerD_acaena.csv")
+# ##########################################
+# # Calculate Schonner's D
+# ##########################################
+# 
+# pkgs0 <- loadedNamespaces()
+# 
+# scho <- list()
+# 
+# for(i in 1:length(cladedata)){
+# 
+#   scho[[i]] <- SchoenerD_ecospat(scores, "PC1", "PC2", 
+#                                  cladedata[[i]][[1]],  cladedata[[i]][[3]] # Data of target clade pair
+#                                  )
+#   
+# }
+# 
+# ### Unload DLLs of ecospat
+# pkgsDiff <-
+#   setdiff(loadedNamespaces(), pkgs0)
+# 
+# unloadNamespace(pkgsDiff)
+# 
+# ### Load tidyverse after unload ecospat
+# ### These libraries load more DLLs than max number, so generate error. 
+# library(tidyverse)
+# 
+# scholist <- lapply(1:length(scho), function(i){
+#   # Convert list to dataframe
+#   x <- data.frame(scho[[i]])
+#   
+#   # Add colnames
+#   colnames(x) <- c("ecospat.corrected", "ecospat.uncorrected")
+#   
+#   # Get Shoenner's D. I don't use I.
+#   return(x["D",])
+#   
+#   }
+# )
+# 
+# # Add column in schonner's D dataframe showing clade numbers 
+# scholist <- do.call(rbind, scholist)
+# nodeNo <- sapply(cladedata, "[[", 5) %>% strsplit(., "\ ")
+# 
+# scholist$node1 <- as.numeric(do.call(rbind, lapply(nodeNo, "[[",1)))
+# scholist$node2 <- as.numeric(do.call(rbind, lapply(nodeNo, "[[",2)))
+# 
+# write.csv(scholist, ".//clade_schoennerD_acaena.csv")
 
 ###################################################
 ### Clade niche volume
 ###################################################
 
-D <- lapply(lapply(cladedata, "[[", 1), SchoenerD, scores = scores, cladedata2 = scores)
+nichevol <- list()
+for(i in 1:length(cladedata)){
+  
+  nichevol[[i]] <- SchoenerD_ecospat(
+    data1 = cladedata[[i]][[1]], # data of nodes including internal nodes
+    background = scores, data2 = scores, "PC1", "PC2"
+  )
+  
+}
 
-# Collate data
-d2 <- do.call(rbind, lapply(D, "[[",1))
-d3 <- do.call(rbind, lapply(D, "[[",2))
-d4 <- data.frame(cbind(d2,d3))
-colnames(d4) <- c("corrected.D","corrected.I","not corrected.D", "not corrected.I")
-rownames(d4) <- lapply(cladedata, "[[", 5)
-
-# make colums of node numbers
-nodeNo <- strsplit(rownames(d4), "\ ")
-d4$node1 <- as.numeric(do.call(rbind, lapply(nodeNo, "[[",1)))
+nichevoldata <- SchonnerDdataframeFormat(nichevol)
 
 
 ###### Find which nodes I haven't calculated niche volume
-no1 <- (1:45)[!(1:45 %in% d4$node1)]
+
+# Total number of nodes in tree 
+noTreeNode <- max(
+  c(acaena$edge[,1],acaena$edge[,2])
+                  )
+no1 <- (1:noTreeNode)[!(1:noTreeNode %in% nichevoldata$node1)]
+
 
 # Nodes with no occurrence data, ancestor nodes for all species, nodes with overlapping species
-no2 <- no1[!(no1 %in% c(10,18,13,14,21:28,42,45))]
+noNotClac <- no1[!(no1 %in% c(10,18,13,14,21:28,42,45))]
 
-D2 <- list() 
-for(i in no2){
+setwd(".//Acaena niche evolution")
+source("generateClimateDataOfClades.R")
+
+missingcladedata <- list()
+
+for(i in noNotClac){
+  cladeScore <- generateClimateDataOftargetNode(i, acaena,
+                                allnodesister, scores)
+  cladedata <- cladeScore[cladeScore$targetClade == 1,]
   
-  # If the target node has no descendant species, i.e. the node is a terminal tip
-  if(sum(getDescendants(acaena, node = i)) == 0){
-    # If the target node has no occurrence records
-    if(sum(colnames(scores) %in% rownames(nodes)[i]) == 0){
-      
-      stop("The target node has no occurrence records")
-      
-    }else{
-      cladesp <- (colnames(scores) == rownames(nodes)[i])
-      scores$targetClade <- scores[,rownames(nodes)[i]]
-      
-    }
-  }else{
-    
-    cladesp <- colnames(scores) %in% rownames(nodes)[getDescendants(acaena, node = i)]
-    
-    if(sum(cladesp) > 1){
-      
-      # if the target node has multiple descendant species
-      # Create a column showing clade occurrence records
-      scores$targetClade <- ifelse(rowSums(scores[,cladesp]) >= 1, 1, 0)
-    }else{
-      
-      # if the target node has just one descendant
-      scores$targetClade <- scores[,cladesp]
-    }
-    
-    
+  missingcladedata[[i]] <- cladedata
+ 
   }
+
+for(i in noNotClac){
   
-  cladeScore <- scores[,c("PC1", "PC2", "targetClade")]
-  
-  cladedata1 <- cladeScore[cladeScore$targetClade == 1,]
-  
-  D <- SchoenerD(scores = scores, cladedata1 = cladedata1, cladedata2 = scores)
-  
-  D2[[i]]<-D
+  nichevolmissinglist[[i]] <- SchoenerD_ecospat(background = scores, 
+                                       data1 = missingcladedata[[i]], data2 = scores,
+                                       "PC1", "PC2"
+                                       )
 }
+
+nichevoldatamissing <- SchonnerDdataframeFormat(nichevolmissinglist)
+
+
+# 
+# D2 <- list() 
+# for(i in no2){
+#   
+#   # If the target node has no descendant species, i.e. the node is a terminal tip
+#   if(sum(getDescendants(acaena, node = i)) == 0){
+#     # If the target node has no occurrence records
+#     if(sum(colnames(scores) %in% rownames(nodes)[i]) == 0){
+#       
+#       stop("The target node has no occurrence records")
+#       
+#     }else{
+#       cladesp <- (colnames(scores) == rownames(nodes)[i])
+#       scores$targetClade <- scores[,rownames(nodes)[i]]
+#       
+#     }
+#   }else{
+#     
+#     cladesp <- colnames(scores) %in% rownames(nodes)[getDescendants(acaena, node = i)]
+#     
+#     if(sum(cladesp) > 1){
+#       
+#       # if the target node has multiple descendant species
+#       # Create a column showing clade occurrence records
+#       scores$targetClade <- ifelse(rowSums(scores[,cladesp]) >= 1, 1, 0)
+#     }else{
+#       
+#       # if the target node has just one descendant
+#       scores$targetClade <- scores[,cladesp]
+#     }
+#     
+#     
+#   }
+#   
+#   cladeScore <- scores[,c("PC1", "PC2", "targetClade")]
+#   
+#   cladedata1 <- cladeScore[cladeScore$targetClade == 1,]
+#   
+#   D <- SchoenerD(scores = scores, cladedata1 = cladedata1, cladedata2 = scores)
+#   
+#   D2[[i]]<-D
+# }
 
 
 # Collate data

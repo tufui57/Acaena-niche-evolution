@@ -23,6 +23,11 @@ tips <- acaena$tip.label
 nodes <- data.frame(sapply(tips, function(x,y) which(y==x), y=acaena$tip.label))
 colnames(nodes)<-"nodelabel"
 
+# Modify species names in phylogentic distance file
+a <- unlist(strsplit(rownames(nodes), "_Ac"))
+a2 <- gsub("_EU352216", "", a) %>% gsub("_AY634821", "", .) %>% gsub("novae-", "novae.", .)
+rownames(nodes) <- grepl("_", a2) %>% a2[.]
+
 ## Second, find sister node of a target species
 
 tipssister <- findSisterNode(acaena)

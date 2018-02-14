@@ -41,7 +41,7 @@ scores <- data.frame(d[, c(colnames(d)[grep("^bioclim", colnames(d))], sname,
 extent_x = c(min(scores$PC1), max(scores$PC1))
 extent_y = c(min(scores$PC2), max(scores$PC2))
 
-
+save(scores, file = ".//Scores.data")
 
 ########################################################################################
 ### Calculate node niche
@@ -88,4 +88,4 @@ cladedata <- lapply(number, function(i){
   
   )
 
-save(cladedata, file = "./cladePairData.data")
+save(cladedata, file = ".//cladePairData.data")

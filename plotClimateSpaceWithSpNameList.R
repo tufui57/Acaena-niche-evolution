@@ -78,19 +78,6 @@ plotSpNameList <- function(background,
   
   }
   
-# # test data
-# data1 <- clades[[1]]
-# data2 <- clades[[3]]
-# background <- scores
-# 
-# axis1="PC1"
-# axis2="PC2"
-# col1="green"
-# col2="purple"
-# nodeName = clades[[5]]
-# sisnodeName = clades[[4]]
-# nodeNumber = i
-
 
 ################################################################
 ## Final function; Plot all

@@ -2,9 +2,6 @@
 ### Phylogenetic distances between nodes
 ########################################################################################
 
-
-# library(adegenet)
-# library(geiger)
 library(phytools)
 library(nichePlot)
 

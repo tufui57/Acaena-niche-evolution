@@ -1,17 +1,17 @@
 
 source("06_Clade pairing.R")
 
-generateClimateDataOftargetNode <- function(i, # internal node number
+generateClimateDataOfTargetNode <- function(i, # Node number
                                         acaena, # tree object
                                         allnodesister, # List of discendant nodes of its sister node
                                         scores, # background data containing occurrence data of target taxa
-                                        nodes = nodes,
-                                        tips = tips
+                                        nodes,
+                                        tips
                                         ){
 
   
   # If the target node has no descendant species, i.e. the node is a terminal tip/node
-  if( getDescendants(acaena, node = i) %>% sum == 0 ){
+  if( getDescendants(acaena, node = i) %>% length <= 1 ){
     
     # If the target node has no occurrence records
     if(colnames(scores) %in% rownames(nodes)[i] %>% sum == 0){
@@ -53,8 +53,10 @@ generateClimateDataOftargetNode <- function(i, # internal node number
 generateClimateDataOfClades <- function(i, # internal node number
                                         acaena, # tree object
                                         allnodesister, # List of discendant nodes of its sister node
-                                        scores # background data containing occurrence data of target taxa
-                            ){
+                                        scores, # background data containing occurrence data of target taxa
+                                        nodes,
+                                        tips
+                                        ){
   
   if(i %>% is.numeric == FALSE){
     stop("Use number for i, not character")
@@ -70,39 +72,7 @@ generateClimateDataOfClades <- function(i, # internal node number
   ## Find columns of species in the target node
   ################################################
   
-  # If the target node has no descendant species, i.e. the node is a terminal tip/node
-  if( getDescendants(acaena, node = i) %>% sum == 0 ){
-    
-    # If the target node has no occurrence records
-    if(colnames(scores) %in% rownames(nodes)[i] %>% sum == 0){
-      
-      stop("The target node has no occurrence records")
-      
-    }else{
-      descendantColumn <- (colnames(scores) == rownames(nodes)[i])
-      scores$targetClade <- rownames(nodes)[i] %>% scores[, .]
-      
-    }
-  }else{
-    
-    descendants <- getDescendants(acaena, node = i) %>% rownames(nodes)[.]
-    descendantColumn <- colnames(scores) %in% descendants
-    
-    if(sum(descendantColumn) > 1){
-      
-      # if the target node has multiple descendant species
-      # Create a column showing clade occurrence records
-      scores$targetClade <- ifelse(scores[, descendantColumn] %>% rowSums >= 1, 1, 0)
-      
-      }else{
-      
-      # if the target node has just one descendant
-      scores$targetClade <- scores[, descendantColumn]
-    }
-    
-  }
-  
-  cladeScore <- scores[, c("PC1", "PC2", "targetClade")]
+  cladeScore <- generateClimateDataOfTargetNode(i, acaena, allnodesister, scores)
   
   ################################################
   ## Find columns of species in the sister node

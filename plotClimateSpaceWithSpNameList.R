@@ -89,7 +89,8 @@ ploTwoGroupWithSpNames <- function(background,
                    col1, col2,
                    nodeNumber, # Character of target node and sister node numbers
                    nodeName, sisnodeName,
-                   extent_x, extent_y
+                   extent_x, extent_y,
+                   save = TRUE
 ) {
   
   pMain <- plotTwoGroups(background, 
@@ -130,18 +131,22 @@ ploTwoGroupWithSpNames <- function(background,
                           extent_x, extent_y
   )
 
-  
-  ### Plot tow species niche on one figure 
-  png(filename = paste("Y:\\niche_", nodeNumber, ".png"), width = 900, height = 630)
-  plot(pMain)
-  dev.off()
-  
-  ### Plot two species niche separately
-  png(filename = paste("Y:\\niche_", nodeNumber, "_separate.png"), width = 450, height = 630)
-  # change font size
-  theme_set(theme_gray(base_size = 18))
-  # Plot in multiple panels
-  grid.arrange(pRightTop, pclade1, pRightBottom, pclade2, ncol = 2, nrow = 2, widths = c(3,1), heights = c(1,1))
-  dev.off()
+  if(save == TRUE){
+    ### Plot tow species niche on one figure 
+    png(filename = paste("Y:\\niche_", nodeNumber, ".png"), width = 900, height = 630)
+    plot(pMain)
+    dev.off()
+    
+    ### Plot two species niche separately
+    png(filename = paste("Y:\\niche_", nodeNumber, "_separate.png"), width = 450, height = 630)
+    # change font size
+    theme_set(theme_gray(base_size = 18))
+    # Plot in multiple panels
+    grid.arrange(pRightTop, pclade1, pRightBottom, pclade2, ncol = 2, nrow = 2, widths = c(3,1), heights = c(1,1))
+    dev.off()
+    
+  }else{
+    return(pMain)
+  }
   
 }

@@ -72,7 +72,7 @@ generateClimateDataOfClades <- function(i, # internal node number
   ## Find columns of species in the target node
   ################################################
   
-  cladeScore <- generateClimateDataOfTargetNode(i, acaena, allnodesister, scores)
+  cladeScore <- generateClimateDataOfTargetNode(i, acaena, allnodesister, scores, nodes, tips)
   
   ################################################
   ## Find columns of species in the sister node
@@ -84,7 +84,7 @@ generateClimateDataOfClades <- function(i, # internal node number
   ## Create a column showing clade occurrence records
   if(sum(sisdescendantColumn) > 1){
     
-    scores$sisClade <- ifelse(scores[,sisdescendantColumn] %>% rowSums >= 1,
+    scores$sisClade <- ifelse(scores[, sisdescendantColumn] %>% rowSums >= 1,
                               1, 0)
   
     }else{

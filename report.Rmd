@@ -1,0 +1,341 @@
+---
+title: "Report analysis for niche of sister species pairs and clades"
+output: word_document
+---
+###################################################
+### Clade niche analysis
+###################################################
+
+
+```{r libraries echo=FALSE}
+library(phytools)
+library(ape)
+
+```
+
+##############################################################################
+### Data preparation
+##############################################################################
+
+```{r echo=FALSE}
+setwd("C://Users//nomur//Documents")
+source(".//Acaena niche evolution//06_Clade pairing.R")
+########################################################################################
+### Phylogenetic distances between nodes
+########################################################################################
+library(dplyr)
+library(phytools)
+library(nichePlot)
+
+# Import phylogeny tree data
+acaena <- read.nexus("Y:\\Niche change of lineages\\Niche evolution of open habitat species in islands\\Phylogenetic data and trees\\From Angela\\NZ_Acaena_BEAST_output_6gene.tree")
+
+########################################################################################
+### Get sister nodes
+########################################################################################
+
+### Get sister species (tip) or sister group of a target species
+# Extract names of edges (i.e. tips and taxa)
+tips <- acaena$tip.label
+
+## first get the node numbers of the tips
+nodes <- data.frame(sapply(tips, function(x,y) which(y==x), y=acaena$tip.label))
+colnames(nodes)<-"nodelabel"
+
+# Modify species names in phylogentic distance file
+a <- unlist(strsplit(rownames(nodes), "_Ac"))
+a2 <- gsub("_EU352216", "", a) %>% gsub("_AY634821", "", .) %>% gsub("novae-", "novae.", .)
+rownames(nodes) <- grepl("_", a2) %>% a2[.]
+
+## Second, find sister node of a target species
+
+tipssister <- findSisterNode(acaena)
+
+# Name a result list
+names(tipssister) <- rownames(nodes)
+
+### Get a sister group of internal nodes as well as terminal nodes
+
+# Get node numbers of internal nodes
+allnodesister <- GetInternalNodeNumber(acaena)
+
+allnodesister[1:length(tipssister)] <- tipssister
+
+########################################################################################
+### Plot edge length on trees
+########################################################################################
+
+### Phylogenetic distance between nodes
+# The order of the node pair doesn't matter. dist.nodes(acaena)[i, getSisters(acaena, i)] == dist.nodes(acaena)[getSisters(acaena, i), i]
+distance <- sapply(1:max(acaena$edge), function(i){
+  c(i, getSisters(acaena, i), dist.nodes(acaena)[i, getSisters(acaena, i)])
+})
+
+distance2 <- do.call(rbind, distance)
+colnames(distance2) <- c("node", "sisterNode","distance")
+
+```
+
+#################################################################################
+### Calculate node ages
+#################################################################################
+```{r echo=FALSE}
+### Distance between all combinations of tips
+distances <- dist.nodes(acaena)
+
+# Calculate species ages
+ages <- sapply(nodes[[1]], function(i){
+  # Phylogenetic distance list has 0 (distance to themselves)
+  (distances[,i] > 0) %>% distances[., i] %>% min
+  }
+)
+
+ages <- as_tibble(ages) %>% mutate(., spname = row.names(nodes))
+
+### Calculate internal node ages
+nodeage <- cbind(rep(NA, length(branching.times(acaena))), branching.times(acaena))
+colnames(nodeage) <- c("spname", "value")
+
+
+agesTipAndNode <- rbind(ages, nodeage)
+
+
+```
+
+
+########################################
+###  Dataframe of Clade niche volume & age
+########################################
+```{r echo=FALSE}
+volume <- read.csv(".//clade_nicheVolume_acaena.csv")
+extractAges <- agesTipAndNode[rownames(agesTipAndNode) %in% volume$node1,]
+
+ageVolData <- cbind(extractAges, volume[order(volume$node1), ])
+
+```
+
+
+
+###################################################
+### Dataframe of Clade niche overlap & phylogenetic distances
+###################################################
+```{r echo=FALSE}
+dis <- data.frame(distance2)
+overlap <- read.csv(".//clade_schoennerD_acaena.csv")
+
+overlapPdData <- cbind(overlap, dis[dis$node %in% overlap$node1, ])[ ,c("node1", "node2", 
+                                                      "ecospat.corrected", "ecospat.uncorrected", "distance")]
+```
+
+
+#########################################################################
+### Plots
+#########################################################################
+```{r}
+########################################################
+### Function for plotting
+########################################################
+
+# This fucntion was extracted from "10_Analysis clade niche.R" for Acaena sister clades
+
+library(ggplot2)
+
+plotAnalysis <- function(data, 
+                         m, # linear model object
+                         xv, yv, # column names of responce and explanatory variable
+                         xlabname, ylabname, # axes names for plot
+                         nodeNumber,
+                         showStats = T # TRUE; Show p value and slope of linear model and colour points, FALSE; No stat values and black points
+){
+  
+  if(showStats == T){
+    myplot <- ggplot(data, aes_string(x = xv, y = yv, label = nodeNumber)) +
+      geom_point() +
+      # text label for points
+      geom_text(size=5) +
+      # change xy labels
+      labs(x = xlabname, y = ylabname) +
+      # change text size
+      theme(text = element_text(size = 20),
+            axis.text.x = element_text(size = 20)) +
+      # drow LM line & confident intervals 
+      stat_smooth(method = "lm", col = "red") +
+      # show stats result as title
+      labs(title = paste("Adj R2 =", signif(summary(m)$adj.r.squared, digits = 2),
+                         "Intercept =", signif(m$coef[[1]], 2),
+                         " Slope =", signif(m$coef[[2]], 2),
+                         " P =", signif(summary(m)$coef[2, 4], 2))) +
+      theme(panel.background = element_rect(fill = "gray95"))
+  } else {
+    myplot <- ggplot(data, aes_string(x = xv, y = yv)) +
+      geom_point() +
+      # change xy labels
+      labs(x = xlabname, y = ylabname) +
+      # change text size
+      theme(text = element_text(size = 20),
+            axis.text.x = element_text(size = 20)) +
+      # drow LM line & confident intervals 
+      stat_smooth(method = "lm", col = "red") +
+      theme(panel.background = element_rect(fill = "gray95"), legend.position="none")
+  }
+  return(myplot)
+}
+
+```
+
+#########################################################################
+### Sister species pairs' Phylogenetic distances ~ niche overlap of occurrence records
+#########################################################################
+
+```{r echo=FALSE}
+### Node numbers of sister species pairs
+sispairs <- c(1,20,3,5,16)
+sisOverlapPd <- (overlapPdData$node1 %in% sispairs) %>% overlapPdData[., ]
+
+m <- lm(distance ~ ecospat.corrected, sisOverlapPd)
+
+myplot <- plotAnalysis(data = sisOverlapPd, 
+                       m = m, 
+                       xv = "ecospat.corrected", yv = "distance", 
+                       nodeNumber = "node1", showStats = T,
+                       xlabname = "Niche overlap of occurrence records", ylabname = "Phylogenetic distances between sister species pairs"
+)
+
+plot(myplot)
+# save
+# ggsave(paste("Y:\\sister_pd_nicheoverlap_legend.png", sep = ""), plot = myplot,
+#        width = 300, height = 210, units = 'mm')
+
+rm(myplot, m)
+
+```
+
+#########################################################################
+### Sister species pair - their ancestor's sister node
+### Phylogenetic distances ~ niche overlap of occurrence records
+#########################################################################
+```{r}
+
+### Node numbers of sister species pairs
+sispairs <- c(1,20,3,5,16)
+
+ancSisNode <- sapply(sispairs, function(i){
+  
+  ancestor <- acaena$edge[which(i == acaena$edge[, 2])]
+  ancestorSisNode <- distance2[distance2[,"node"] == ancestor, "sisterNode"]
+  return(ancestorSisNode)
+  
+  }
+)
+
+
+ancsisOverlapPd <- rbind(
+  ((overlapPdData$node1 %in% ancSisNode) %>% overlapPdData[., ]),
+  ((overlapPdData$node2 %in% ancSisNode) %>% overlapPdData[., ])
+)
+
+dup <- duplicated(ancsisOverlapPd$ecospat.corrected) %>% which
+ancsisOverlapPd <- ancsisOverlapPd[-dup, ]
+
+m <- lm(distance ~ ecospat.corrected, ancsisOverlapPd)
+
+myplot <- plotAnalysis(data =ancsisOverlapPd, 
+                       m = m, 
+                       xv = "ecospat.corrected", yv = "distance", 
+                       nodeNumber = "node1", showStats = T,
+                       xlabname = "Niche overlap of occurrence records", ylabname = "Phylogenetic distances between sister species pairs"
+)
+
+plot(myplot)
+
+# # save
+# ggsave(paste("Y:\\sisterAunt_pd_nicheoverlap_legend.png", sep = ""), plot = myplot,
+#        width = 300, height = 210, units = 'mm')
+
+rm(myplot, m)
+
+```
+
+#########################################################################
+### Clade Phylogenetic distances ~ niche overlap of occurrence records
+#########################################################################
+```{r}
+
+### Eliminate outlier, SAC, of clade age
+
+overlapPd <- overlapPdData[which(overlapPdData$node1 != 19), ]
+m <- lm(distance ~ ecospat.corrected, overlapPd)
+
+myplot <- plotAnalysis(data = overlapPd, 
+                       m = m, 
+                       xv = "ecospat.corrected", yv = "distance", 
+                       nodeNumber = "node1", showStats = T,
+                       xlabname = "Niche overlap of occurrence records", ylabname = "Phylogenetic distances between clades"
+                       )
+plot(myplot)
+
+# # save
+# ggsave(paste("Y:\\clade_pd_nicheoverlap_legend.png", sep = ""), plot = myplot,
+#        width = 300, height = 210, units = 'mm')
+# 
+# rm(myplot, m)
+# 
+# 
+# ### Leave outlier of clade age in data
+# m <- lm(distance ~ ecospat.corrected, overlapPdData)
+# 
+# myplot <- plotAnalysis(data = overlapPdData, m = m, xv = "ecospat.corrected", yv = "distance",
+#                        nodeNumber = "node1", showStats = T,
+#                        xlabname = "Niche overlap of occurrence records", ylabname = "Phylogenetic distances between clades")
+# 
+# plot(myplot)
+# 
+# # # save
+# # ggsave(paste("Y:\\clade_pd_nicheoverlap_outlier.png", sep = ""), plot = myplot,
+# #        width = 300, height = 210, units = 'mm')
+# 
+# rm(myplot, m)
+
+```
+
+#########################################################################
+### Clade ages ~ niche volume of occurrence records
+#########################################################################
+
+```{r}
+
+### Eliminate outlier
+outlier <- which(max(ageVolData$value) == ageVolData$value)
+ageVol <- ageVolData[-outlier,]
+
+m <- lm(value ~ ecospat.corrected, ageVol)
+
+myplot <- plotAnalysis(data=ageVolData[-outlier,], m=m, xv = "ecospat.corrected", yv = "value", 
+                       nodeNumber = "node1", showStats = T,
+                       xlabname = "Niche volume of occurrence records", ylabname = "Clade age")
+
+plot(myplot)
+
+# # save
+# ggsave(paste("Y:\\clade_age_nicheVolume_legend.png", sep = ""), plot = myplot,
+#        width = 300, height = 210, units = 'mm')
+# 
+# rm(myplot, m)
+# 
+# 
+# ### Leave outlier
+# m <- lm(value ~ ecospat.corrected, ageVolData)
+# 
+# myplot <- plotAnalysis(data=ageVolData, m=m, xv = "ecospat.corrected", yv = "value", 
+#                        nodeNumber = "node1", showStats = T,
+#                        xlabname = "Niche volume of occurrence records", ylabname = "Clade age")
+# 
+# # save
+# ggsave(paste("Y:\\clade_age_nicheVolume_outlier.png", sep = ""), plot = myplot,
+#        width = 300, height = 210, units = 'mm')
+# 
+# rm(myplot, m)
+
+```
+
+

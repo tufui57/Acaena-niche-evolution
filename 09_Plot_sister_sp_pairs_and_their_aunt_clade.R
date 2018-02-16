@@ -9,6 +9,8 @@ setwd(".//Acaena niche evolution")
 # tidyverse loads too much DLLs. Load tidyr instead.
 library(tidyr)
 library(ggplot2)
+library(grid)
+library(gridExtra)
 
 source("generateClimateDataOfClades.R")
 source("SchonnerDdataframeFormat.r")
@@ -30,7 +32,9 @@ extent_y = c(min(scores$PC2), max(scores$PC2))
 sispairs <- c(1,20,3,5,16)
 
 plot_sister_ancestor <- function(i,
-                                 codes){
+                                 codes,
+                                 pl = FALSE # Plot 
+                                 ){
 
   ## Find parent node of target sister species pair
   ancestor <- acaena$edge[which(i == acaena$edge[,2])]
@@ -80,20 +84,50 @@ plot_sister_ancestor <- function(i,
     # extent
     xlim(extent_x) +
     ylim(extent_y) +
-    # title
-    ggtitle(paste(ancestorSisName, nodeName, sisnodeName, sep = " ")) +
-    guides(colour = guide_legend(override.aes = list(size = 5, shape=16, alpha=0.7))) +
+    # # title
+    # ggtitle(paste(ancestorSisName, nodeName, sisnodeName, sep = " ")) +
+    # guides(colour = guide_legend(override.aes = list(size = 5, shape=16, alpha=0.7))) +
     # legend position inside plot
     theme(legend.justification = c(1, 1), legend.position = c(1, 1),
           panel.background = element_rect(fill = 'gray96')
     )
   
-  ### Plot tow species niche on one figure 
-  png(filename = paste("Y:\\niche_", ancestorSisName, nodeName, sisnodeName, ".png"), width = 900, height = 630)
-  plot(pMain)
-  dev.off()
+  ### Make multiple coloured title
+  grobs <- grobTree(
+    gp = gpar(fontsize = 14, fontface = "bold"), 
+    textGrob(label = ancestorSisName, name = "title1",
+             x = unit(0.2, "lines"), y = unit(1.4, "lines"), 
+             hjust = 0, vjust = 0, gp = gpar(col = "red")),
+    textGrob(label = nodeName, name = "title2",
+             x = grobWidth("title1") + unit(0.2, "lines"), y = unit(1.4, "lines"),
+             hjust = 0, vjust = 0, gp = gpar(col = "green")),
+    textGrob(label = sisnodeName, name = "title3",
+             x = grobWidth("title1") + grobWidth("title2") + unit(0.2, "lines"), y = unit(1.4, "lines"),
+             hjust = 0, vjust = 0, gp = gpar(col = "purple"))
+  )
   
+  gg <- arrangeGrob(pMain, top=grobs, padding = unit(2.6, "line"))
+
+  
+  if(pl == T){
+    ### Plot tow species niche on one figure 
+    png(filename = paste("Y:\\niche_", ancestorSisName, nodeName, sisnodeName, ".png"), width = 900, height = 630)
+    grid.newpage()
+    grid.draw(gg)
+    dev.off()
+  
+    }else{
+    
+    return(gg)
+  
+    }
+
 }
 
 
-lapply(sispairs, plot_sister_ancestor, codes = codes2)
+anssisplots <- lapply(sispairs, plot_sister_ancestor, codes = codes2, pl=T)
+
+
+
+
+

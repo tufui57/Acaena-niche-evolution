@@ -2,14 +2,9 @@
 ### Clade niche
 ###################################################
 
-setwd(".//Acaena niche evolution")
 source("06_Clade pairing.R")
 
-### Unload libraries
-loadedNamespaces() %>% unloadNamespace()
-
-
-library(tidyverse)
+library(dplyr)
 library(grid)
 library(gridExtra)
 library(ggplot2)
@@ -72,16 +67,7 @@ number <- (1:max(acaena$edge))[-c(8,10,13,14,17,18,21:29,34,35,39,40,42,45)]
 
 cladedata <- lapply(number, function(i){
   
-  clades <- generateClimateDataOfClades(i, allnodesister, scores)
-  
-  # ploTwoGroupWithSpNames(background = scores,
-  #                        axis1 = "PC1", axis2 = "PC2", # Names of coordinates
-  #                        data1 = clades[[1]], data2 = clades[[3]], # Dataframes of two groups of points
-  #                        col1 = "green", col2 = "purple",
-  #                        nodeName = clades[[5]],
-  #                        sisnodeName = clades[[4]],
-  #                        nodeNumber = i,
-  #                        extent_x, extent_y)
+  clades <- generateClimateDataOfClades(i, allnodesister, scores, nodes = nodes, tips = tips)
   
   return(clades)
   }
@@ -89,3 +75,26 @@ cladedata <- lapply(number, function(i){
   )
 
 save(cladedata, file = ".//cladePairData.data")
+
+
+ploTwoGroupWithSpNames(background = scores,
+                       axis1 = "PC1", axis2 = "PC2", # Names of coordinates
+                       data1 = clades[[1]], data2 = clades[[3]], # Dataframes of two groups of points
+                       col1 = "green", col2 = "purple",
+                       nodeName = clades[[5]],
+                       sisnodeName = clades[[4]],
+                       nodeNumber = i,
+                       extent_x, extent_y,
+                       save = TRUE
+)
+
+sisplots <- ploTwoGroupWithSpNames(background = scores,
+                       axis1 = "PC1", axis2 = "PC2", # Names of coordinates
+                       data1 = clades[[1]], data2 = clades[[3]], # Dataframes of two groups of points
+                       col1 = "green", col2 = "purple",
+                       nodeName = clades[[5]],
+                       sisnodeName = clades[[4]],
+                       nodeNumber = i,
+                       extent_x, extent_y,
+                       save = FALSE
+)

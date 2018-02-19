@@ -1,6 +1,4 @@
 
-source("06_Clade pairing.R")
-
 generateClimateDataOfTargetNode <- function(i, # Node number
                                         acaena, # tree object
                                         allnodesister, # List of discendant nodes of its sister node
@@ -48,14 +46,13 @@ generateClimateDataOfTargetNode <- function(i, # Node number
 }
 
 
-
-
 generateClimateDataOfClades <- function(i, # internal node number
                                         acaena, # tree object
                                         allnodesister, # List of discendant nodes of its sister node
                                         scores, # background data containing occurrence data of target taxa
                                         nodes,
-                                        tips
+                                        tips,
+                                        spnameCodes
                                         ){
   
   if(i %>% is.numeric == FALSE){
@@ -105,9 +102,21 @@ generateClimateDataOfClades <- function(i, # internal node number
   
   nodeNumber = i
   # Species name codes
-  nodeName = as.character(codes2[codes2$X %in% colnames(scores)[descendantColumn], "tag"])
+  # Get descendant species name of the node
+  if( getDescendants(acaena, node = i) %>% length <= 1 ){
+    
+    descendantColumn <- (colnames(scores) == rownames(nodes)[i])
+    
+    }else{
+    
+    descendants <- getDescendants(acaena, node = i) %>% rownames(nodes)[.]
+    descendantColumn <- colnames(scores) %in% descendants
+    
+  }
+  nodeName = as.character(spnameCodes[spnameCodes$X %in% colnames(scores)[descendantColumn], "tag"])
+  
   sisnodeNumber = distance2[i, "sisterNode"]
-  sisnodeName = as.character(codes2[codes2$X %in% rownames(nodes)[allnodesister[[i]]], "tag"])
+  sisnodeName = pull(spnameCodes[spnameCodes$X %in% rownames(nodes)[allnodesister[[i]]], ], tag)
   cladedata1 <- (cladeScore$targetClade == 1) %>% cladeScore[.,] # Clade 1 PCA data
   cladedata2 <- (sisCladeScore$sisClade == 1) %>% sisCladeScore[., ]  # Clade 2 PCA data
   

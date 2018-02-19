@@ -122,27 +122,36 @@ dump("getDescendants",  file = "nichePlot/R/getDescendants.R", append = TRUE)
 #######################################################
 
 # Get node numbers of all internal nodes
-GetInternalNodeNumber <- function(tree){
-  
-  res <- list()
-  
-  innode <- (length(tree$tip.label) + 1) : max(tree$edge)
-  
-  for(i in innode){
-    sis <- getSisters(tree, i)
+
+GetInternalNodeNumber <-
+  function(tree){
     
-    if(sum(sis) == 0){
-      res[[i]] <- "the farmost ancestor"
-    }else{
-      desnode <- getDescendants(tree, node = sis)
-      destip <- desnode[desnode %in% nodes$nodelabel]
-      res[[i]] <- destip 
+    res <- list()
+    
+    innode <- (length(tree$tip.label) + 1) : max(tree$edge)
+    
+    for(i in innode){
+      sis <- getSisters(tree, i)
+      
+      if(sum(sis) == 0){
+        res[[i]] <- "the farmost ancestor"
+      }else{
+        
+        # If the sister node is terminal node
+        if(getDescendants(tree, node = sis) %>% length <= 1){
+          res[[i]] <- sis
+        }else{
+          
+          desnode <- getDescendants(tree, node = sis)
+          destip <- desnode[desnode %in% nodes$nodelabel]
+          res[[i]] <- destip
+        }
+      }
     }
+    
+    return(res)
+    
   }
-  
-  return(res)
-  
-}
 
 x.GetInternalNodeNumber <- c("#' GetInternalNodeNumber",
      "#'",

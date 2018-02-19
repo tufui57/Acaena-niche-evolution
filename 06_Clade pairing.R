@@ -40,10 +40,9 @@ allnodesister <- GetInternalNodeNumber(acaena)
 allnodesister[1:length(tipssister)] <- tipssister
 
 ########################################################################################
-### Plot edge length on trees
+### Phylogenetic distance between nodes
 ########################################################################################
 
-### Phylogenetic distance between nodes
 # The order of the node pair doesn't matter. dist.nodes(acaena)[i, getSisters(acaena, i)] == dist.nodes(acaena)[getSisters(acaena, i), i]
 distance <- sapply(1:max(acaena$edge), function(i){
   c(i, getSisters(acaena, i), dist.nodes(acaena)[i, getSisters(acaena, i)])

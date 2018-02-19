@@ -33,7 +33,7 @@ plotAnalysis <- function(data,
                          " P =", signif(summary(m)$coef[2, 4], 2))) +
       theme(panel.background = element_rect(fill = "gray95"))
   } else {
-    myplot <- ggplot(data, aes_string(x = xv, y = yv)) +
+    myplot <- ggplot(data, aes_string(x = xv, y = yv, label = nodeNumber)) +
       geom_point() +
       # change xy labels
       labs(x = xlabname, y = ylabname) +

@@ -48,10 +48,8 @@ a <- unlist(strsplit(rownames(nodes), "_Ac"))
 a2 <- gsub("_EU352216", "", a) %>% gsub("_AY634821", "", .) %>% gsub("novae-", "novae.", .)
 rownames(nodes) <- grepl("_", a2) %>% a2[.]
 
-### Import species name codes
-codes <- read.csv("Y:\\traits.csv")
-codes$X <- gsub("novae_", "novae.",codes$X)
-codes2 <- codes[codes$X %in% rownames(nodes), ]
+### Make species name codes
+codes2 <- makeTag(colnames(scores), "Acaena")
 
 
 ########################################################################################

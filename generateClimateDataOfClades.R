@@ -46,7 +46,7 @@ generateClimateDataOfTargetNode <- function(i, # Node number
 }
 
 
-generateClimateDataOfClades <- function(i, # internal node number
+generateClimateDataOfClades <- function(i, # node number
                                         acaena, # tree object
                                         allnodesister, # List of discendant nodes of its sister node
                                         scores, # background data containing occurrence data of target taxa
@@ -113,7 +113,7 @@ generateClimateDataOfClades <- function(i, # internal node number
     descendantColumn <- colnames(scores) %in% descendants
     
   }
-  nodeName = as.character(spnameCodes[spnameCodes$X %in% colnames(scores)[descendantColumn], "tag"])
+  nodeName = pull(spnameCodes[spnameCodes$X %in% colnames(scores)[descendantColumn], ], tag)
   
   sisnodeNumber = distance2[i, "sisterNode"]
   sisnodeName = pull(spnameCodes[spnameCodes$X %in% rownames(nodes)[allnodesister[[i]]], ], tag)

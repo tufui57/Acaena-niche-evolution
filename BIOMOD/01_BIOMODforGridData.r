@@ -18,6 +18,8 @@
 
 library(rgdal)
 library(raster)
+library(dplyr)
+
 ######################################################################################################
 ## NOTE! MAKE SURE package "biomod2" is the latest version! IF NOT, INSTALL AGAIN!
 ## Otherwise, you get errors on model developing!
@@ -156,9 +158,9 @@ folders <- list.dirs(".//", full.names = FALSE, recursive = F)
 
 ensembleModelling_projection <- function(spname, # species name
                                 folder.name,
-                                proj.name
+                                BIOMODproj.name, ensambleProj.name
 ) {
-    # load model data
+    # Load BIOMOD.model.out
     mod <- load(paste(".\\", spname, "\\", spname, ".", folder.name,".models.out",
                   sep = ""))
     model <- get(mod)
@@ -179,48 +181,58 @@ ensembleModelling_projection <- function(spname, # species name
                            prob.median = FALSE,
                            committee.averaging = FALSE,
                            prob.mean.weight = TRUE,
-                           prob.mean.weight.decay = 'proportional')
+                           prob.mean.weight.decay = 'proportional'
+                           )
 
-
-    # load projection data
+    # Load BIOMOD.projection.output
     modelname <- 
-      load(paste(".\\", spname, "\\", spname, ".", folder.name,"ensemble.models.out",
-               sep = ""))
-    model <- get(modelname)
+      load(paste(".\\", spname, "\\proj_", BIOMODproj.name, "\\", spname, ".", BIOMODproj.name, ".projection.out",
+                      sep="")
+           )
+    projModel <- get(modelname)
   
     # Creating the ensemble projections
-    enRes<- BIOMOD_EnsembleForecasting(projection.output = model,
+    enRes<- BIOMOD_EnsembleForecasting(projection.output = projModel,
                             EM.output = myBiomodEM,
-                            proj.name = proj.name
+                            proj.name = ensambleProj.name
                             )
 
     return(enRes)
 }
 
 
-lapply(folders, ensemble_projection, folder.name = "20Feb18", proj.name = "22Feb18_ensamble")
+lapply(folders, ensembleModelling_projection, 
+       folder.name = "20Feb18", BIOMODproj.name = "22Feb18", ensambleProj.name = "22Feb18_ensamble")
 
 
 ## PLOTS THE PROJECTIONS
 
-EMprojectionPlot <- function(spname # species name
+EMprojectionPlot <- function(spname, # species name
+                             proj.name # file location of ensamble model projection.out
 ) {
   # load projection data
-  modelname <- load(paste(".\\", spname, "\\proj_", proj.name, "\\", spname, ".", proj.name, ".", ".projection.out",
-                          sep=""))
+  files <- list.files(paste(".//", spname, "//proj_", proj.name, sep = ""), full.names = T)
+  modelname <- (files  %>% grepl("out$", .) %>% files[.] %>% load)
   model <- get(modelname)
-
-    ## plot each projection separately 
-    proj_val <- get_predictions(model)
-
-    for (i in 1:length(proj_val@layers)) {
-
-        png(filename = paste(".\\Projection_", spname, "\\", names(subset(proj_val, i)), ".png", sep = ""), height = 900, width = 750, units = "px")
-        plot(proj_val[[i]], xlim = c(165, 180), ylim = c(-48, -34))
-        title(names(subset(proj_val, i)))
-        dev.off()
-    }
+  
+  ## plot each projection separately 
+  proj_val <- get_predictions(model)
+  
+  for (i in 1:length(proj_val@layers)) {
+    
+    png(filename = paste(".\\Projection_", spname, "\\", names(subset(proj_val, i)), ".png", sep = ""), height = 900, width = 750, units = "px")
+    plot(proj_val[[i]], xlim = c(165, 180), ylim = c(-48, -34))
+    title(names(subset(proj_val, i)))
+    dev.off()
+  }
 
 }
 
-lapply(folders, EMprojectionPlot)
+lapply(folders, EMprojectionPlot, proj.name = "22Feb18_ensamble")
+
+
+# 
+# spname = folders[1]
+# proj.name = "22Feb18_ensamble"
+# 
+# path <- files  %>% grepl("out$", .) %>% files[.]

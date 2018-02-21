@@ -97,14 +97,22 @@ lapply(folders, biomodProjection_fromSavedBiomodModels,
        )
 
 #################################################################################################################
-########################        Plot BIOMOD projections
+########################   Model evaluations     
 #################################################################################################################
 
-# Model evaluations
+myBiomodModelOut <- biomodProjection_fromSavedBiomodModels(
+  folders[1],
+  modelname = "20Feb18",
+  proj.name = "22Feb18"
+)
 get_evaluations(myBiomodModelOut)
 get_calib_lines(myBiomodModelOut)
 get_variables_importance(myBiomodModelOut)
 
+
+#################################################################################################################
+########################        Plot BIOMOD projections
+#################################################################################################################
 
 ## PLOTS THE PROJECTIONS
 setwd("Y:\\BIOMOD for Grid2")
@@ -115,7 +123,7 @@ projectionPlot <- function(spname, # species name
                            proj.name
 ){
   # load projection data
-  modelname <- load(paste(".\\", spname, "\\proj_", proj.name, "\\", spname, ".", proj.name, ".", ".projection.out",
+  modelname <- load(paste(".\\", spname, "\\proj_", proj.name, "\\", spname, ".", proj.name,  ".projection.out",
                   sep=""))
   model <- get(modelname)
   
@@ -124,8 +132,8 @@ projectionPlot <- function(spname, # species name
   
   for (i in 1:length(proj_val@layers)) {
     
-    png(filename=paste("Y:\\BIOMOD for Grid2\\Projection.", spname,"\\", names(subset(proj_val, i)), ".png", sep=""), 
-        height=900, width=750, units="px")
+    png(filename = paste(".\\Projection.", spname,"\\", names(subset(proj_val, i)), ".png", sep=""), 
+        height = 900, width = 750, units = "px")
     plot(proj_val[[i]], 
          xlim = c(165, 180), ylim = c(-48, -34) # long and lat of NZ
          )
@@ -135,7 +143,7 @@ projectionPlot <- function(spname, # species name
   
 }
 
-lapply(folders, projectionPlot)
+lapply(folders, projectionPlot, proj.name = "22Feb18")
 
 dev.size(c("px"))
 
@@ -146,7 +154,7 @@ dev.size(c("px"))
 # get folder names
 folders <- list.dirs(".//", full.names = FALSE, recursive = F)
 
-ensemble_projection <- function(spname, # species name
+ensembleModelling_projection <- function(spname, # species name
                                 folder.name,
                                 proj.name
 ) {
@@ -175,8 +183,9 @@ ensemble_projection <- function(spname, # species name
 
 
     # load projection data
-    modelname <- load(paste(".\\", spname, "\\proj_", proj.name, "\\", spname, ".", proj.name, ".", ".projection.out",
-                            sep=""))
+    modelname <- 
+      load(paste(".\\", spname, "\\", spname, ".", folder.name,"ensemble.models.out",
+               sep = ""))
     model <- get(modelname)
   
     # Creating the ensemble projections
@@ -189,7 +198,7 @@ ensemble_projection <- function(spname, # species name
 }
 
 
-lapply(folders, ensemble_projection, folder.name = "20Feb18", proj.name = "ensamble22Feb18")
+lapply(folders, ensemble_projection, folder.name = "20Feb18", proj.name = "22Feb18_ensamble")
 
 
 ## PLOTS THE PROJECTIONS

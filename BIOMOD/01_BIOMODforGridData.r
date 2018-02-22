@@ -48,30 +48,42 @@ if(dir.exists("Y://BIOMOD for Grid2") == FALSE){
 }
 setwd("Y://BIOMOD for Grid2")
 
-# Import Acaena data
-all <- read.csv("Y://Acaena project//acaena_bioclim_landcover_1km.csv")
-names(all)[names(all) %in% c("x","y")] <- c("NZTMlon", "NZTMlat")
+### Set arguments
+# data frame of occurrence data and climate data
+datapath <- "Y://Acaena project//chionochloa_bioclim_landcover_1km.csv"
+# character string of target genus name
+genus_name <- "Chionochloa"
+# Raster of climate data
+rasterpath <- "Y:\\GIS map and Climate data\\Acaena_Bioclim_1km_NZTM.data"
 
-load("Y:\\GIS map and Climate data\\Acaena_Bioclim_1km_NZTM.data")
+
+
+# Import data frame of bioclim and occurrence records
+climate.occ <- read.csv(datapath)
+names(climate.occ)[names(climate.occ) %in% c("x","y")] <- c("NZTMlon", "NZTMlat")
+
+# Raster of bioclim and occurrence records
+data.ras <- (load(rasterpath) %>% get)
 
 # Species name
-spname <- colnames(all)[grepl("Acaena", colnames(all))]
+spname <- colnames(climate.occ)[grepl(genus_name, colnames(climate.occ))]
 
-names(acaenaRaster)[grepl("layer", names(acaenaRaster))] <- spname
+# Name rasters in raster stuck object
+#names(data.ras)[grepl("layer", names(data.ras))] <- spname
 
 # Remove NA
-all2 <- all[is.na(all$bioclim1) == F,]
-all3 <- all2[rowSums(all2[,spname], na.rm = T) > 0,]
-for(i in spname){all3[is.na(all3[, i]),i] <- 0}
+climate.occ2 <- (is.na(climate.occ$bioclim1) == F) %>% climate.occ[.,]
+climate.occ3 <- (rowSums(climate.occ2[, spname], na.rm = T) > 0) %>% climate.occ2[.,]
+for(i in spname){climate.occ3[is.na(climate.occ3[, i]), i] <- 0}
 
 # Environmental variables extracted from BIOCLIM and converted into NZTM.
-myExpl <- stack(acaenaRaster[[c(1,6,12,15)]])
+myExpl <- stack(data.ras[[c("bioclim1", "bioclim6", "bioclim12", "bioclim15")]])
 
 #########################################################
 ## Takes a while to run... Don't run on laptop! Slow!
 #########################################################
 
-try(lapply(spname, runBiomod, data = all3, myExpl = myExpl, folder.name = "20Feb18"),
+try(lapply(spname, runBiomod, data = climate.occ3, myExpl = myExpl, folder.name = "23Feb18"),
     silent = FALSE)
 
 ##########################################################
@@ -134,11 +146,9 @@ projectionPlot <- function(spname, # species name
   
   for (i in 1:length(proj_val@layers)) {
     
-    png(filename = paste(".\\Projection.", spname,"\\", names(subset(proj_val, i)), ".png", sep=""), 
+    png(filename = paste(".\\", spname, "\\proj_", proj.name, "\\", names(subset(proj_val, i)), ".png", sep=""), 
         height = 900, width = 750, units = "px")
-    plot(proj_val[[i]], 
-         xlim = c(165, 180), ylim = c(-48, -34) # long and lat of NZ
-         )
+    plot(proj_val[[i]])
     title(names(subset(proj_val, i)))
     dev.off()
   }
@@ -147,57 +157,68 @@ projectionPlot <- function(spname, # species name
 
 lapply(folders, projectionPlot, proj.name = "22Feb18")
 
-dev.size(c("px"))
-
 #################################################################################################################
 ########################        BIOMOD ensamble models
 #################################################################################################################
 
-# get folder names
+# Get folder names
 folders <- list.dirs(".//", full.names = FALSE, recursive = F)
 
 ensembleModelling_projection <- function(spname, # species name
                                 folder.name,
                                 BIOMODproj.name, ensambleProj.name
 ) {
+  # load projection data
+  files <- list.files(paste(".//", spname, "//proj_", proj.name, sep = ""), full.names = T)
+  ensamblefile <- (files  %>% grepl("out$", .) %>% files[.])
+  
+  if(file.exists(ensamblefile)){
+    
+    print("The ensamble prediction result file already exists.")
+  
+    }else{
+    
     # Load BIOMOD.model.out
-    mod <- load(paste(".\\", spname, "\\", spname, ".", folder.name,".models.out",
-                  sep = ""))
+    mod <- load(paste(".\\", spname, "\\", spname, ".", folder.name, ".models.out",
+                      sep = "")
+                )
     model <- get(mod)
-
+    
     ## Ensemble modelling
     myBiomodEM <- BIOMOD_EnsembleModeling(modeling.output = model,
-                           chosen.models = 'all',
-                           em.by = 'all',
-                           eval.metric = c('TSS'),
-                           eval.metric.quality.threshold = c(0.7),
-                           # Models.eval.meth must be one or two, because temporary raster folder can't store data of models for more than 3 evaluation metrics.
-                           # If you run this on computer with bigger storage for the folder,  it may run without the error. (In writeBin(as.vector(v[start:end, ]), x@file@con, size = x@file@dsize) :problem writing to connection)
-                           models.eval.meth = c('TSS'), #, 'ROC', 'ACCURACY'
-                           prob.mean = TRUE,
-                           prob.cv = FALSE,
-                           prob.ci = FALSE,
-                           prob.ci.alpha = 0.05,
-                           prob.median = FALSE,
-                           committee.averaging = FALSE,
-                           prob.mean.weight = TRUE,
-                           prob.mean.weight.decay = 'proportional'
-                           )
-
+                                          chosen.models = 'all',
+                                          em.by = 'all',
+                                          eval.metric = c('TSS'),
+                                          eval.metric.quality.threshold = c(0.7),
+                                          # Models.eval.meth must be one or two, because temporary raster folder can't store data of models for more than 3 evaluation metrics.
+                                          # If you run this on computer with bigger storage for the folder,  it may run without the error. (In writeBin(as.vector(v[start:end, ]), x@file@con, size = x@file@dsize) :problem writing to connection)
+                                          models.eval.meth = c('TSS'), #, 'ROC', 'ACCURACY'
+                                          prob.mean = TRUE,
+                                          prob.cv = FALSE,
+                                          prob.ci = FALSE,
+                                          prob.ci.alpha = 0.05,
+                                          prob.median = FALSE,
+                                          committee.averaging = FALSE,
+                                          prob.mean.weight = TRUE,
+                                          prob.mean.weight.decay = 'proportional'
+    )
+    
     # Load BIOMOD.projection.output
     modelname <- 
       load(paste(".\\", spname, "\\proj_", BIOMODproj.name, "\\", spname, ".", BIOMODproj.name, ".projection.out",
-                      sep="")
-           )
+                 sep = "")
+      )
     projModel <- get(modelname)
-  
+    
     # Creating the ensemble projections
-    enRes<- BIOMOD_EnsembleForecasting(projection.output = projModel,
-                            EM.output = myBiomodEM,
-                            proj.name = ensambleProj.name
-                            )
-
-    return(enRes)
+    # Nothing is returned by this function, but specific projection files () are saved on the hard drive projection folder. 
+    BIOMOD_EnsembleForecasting(projection.output = projModel,
+                                        EM.output = myBiomodEM,
+                                        proj.name = ensambleProj.name
+    )
+    
+    
+  }
 }
 
 
@@ -205,34 +226,22 @@ lapply(folders, ensembleModelling_projection,
        folder.name = "20Feb18", BIOMODproj.name = "22Feb18", ensambleProj.name = "22Feb18_ensamble")
 
 
-## PLOTS THE PROJECTIONS
+## Plot ensemble projection
 
 EMprojectionPlot <- function(spname, # species name
                              proj.name # file location of ensamble model projection.out
 ) {
   # load projection data
   files <- list.files(paste(".//", spname, "//proj_", proj.name, sep = ""), full.names = T)
-  modelname <- (files  %>% grepl("out$", .) %>% files[.] %>% load)
-  model <- get(modelname)
+  proj <- (files  %>% grepl("grd$", .) %>% files[.] %>% raster)
   
-  ## plot each projection separately 
-  proj_val <- get_predictions(model)
-  
-  for (i in 1:length(proj_val@layers)) {
-    
-    png(filename = paste(".\\Projection_", spname, "\\", names(subset(proj_val, i)), ".png", sep = ""), height = 900, width = 750, units = "px")
-    plot(proj_val[[i]], xlim = c(165, 180), ylim = c(-48, -34))
-    title(names(subset(proj_val, i)))
-    dev.off()
-  }
+  png(filename = paste(".//ensemble_projection//", names(proj), ".png", sep = ""),
+      height = 900, width = 750, units = "px"
+  )
+  plot(proj)
+  title(names(proj))
+  dev.off()
 
 }
 
 lapply(folders, EMprojectionPlot, proj.name = "22Feb18_ensamble")
-
-
-# 
-# spname = folders[1]
-# proj.name = "22Feb18_ensamble"
-# 
-# path <- files  %>% grepl("out$", .) %>% files[.]

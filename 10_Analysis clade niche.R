@@ -10,6 +10,7 @@ library(ape)
 ##############################################################################
 
 source(".//Acaena niche evolution//06_Clade pairing.R")
+source(".//Acaena niche evolution//plotAnalysis_clade_niche.R")
 
 #################################################################################
 ### Calculate node ages

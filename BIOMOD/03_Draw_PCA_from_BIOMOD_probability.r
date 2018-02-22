@@ -1,13 +1,69 @@
+############################################################################################################
+############################   Get Schoenner's D from two groups of probability
+############################################################################################################
 
-
-
-### Test data for probability from Acaena anserinifolia
-dat <- read.csv(".\\Acaena project\\each sp prob csv\\allNZ_bioclim_sp_landuseChange_BIOMODprediction.csv")
-
-probANS <- scores2[, c("Acaena_anserinifolia_probMedian","PC1", "PC2")]
-probDUM <- scores2[, c("Acaena_dumicola_probMedian","PC1", "PC2")]
-
-
+library(dplyr)
 library(dismo)
-### Use dismo::nicheOverlap
-nicheOverlap(probANS, probDUM, stat='D', mask=TRUE, checkNegatives=TRUE) 
+library(raster)
+source(".\\Chionochloa niche evolution\\makeTag.R")
+source(".//Acaena niche evolution//plotAnalysis_clade_niche.R")
+
+# Load prediction of ensemble model
+load("Y://ensemblePrediction.data")
+
+source(".\\Acaena niche evolution\\06_Clade pairing.R")
+
+
+spname <- gsub("\\.", "\\_", names(pred)) %>% 
+  gsub("var_", "var.", .) %>% 
+  gsub("subsp_", "subsp.", .) %>% 
+  gsub("novae_", "novae.", .)
+
+code <- makeTag_separate(spname, "Acaena", "_")
+
+# First clade in sister pairs
+sispairs <- c(1,20,3,5,16)
+
+probD <- list()
+for(i in sispairs){
+  # Species name codes
+  nodeName = pull(code[code$X %in% rownames(nodes)[i], ], X)
+  sisnodeName = pull(code[code$X %in% rownames(nodes)[allnodesister[[i]]], ], X)
+  
+  probANS <- (spname == nodeName) %>% pred[.]
+  probDUM <- (spname == sisnodeName) %>% pred[.]
+  ### Use dismo::nicheOverlap
+  probD[[i]] <- nicheOverlap(probANS[[1]], probDUM[[1]], stat = 'D', mask = TRUE, checkNegatives = TRUE) 
+  
+}
+
+
+
+############################################################################################################
+##### Compare Schoenner's D from two groups of probability and the one from occurrence records
+############################################################################################################
+
+### Node numbers of sister species pairs
+sispairs <- c(1,20,3,5,16)
+sisOverlapPd <- (overlapPdData$node1 %in% sispairs) %>% overlapPdData[., ]
+
+overlaps <- cbind(sisOverlapPd, unlist(probD))
+colnames(overlaps)[ncol(overlaps)] <- "probD"
+
+
+m <- lm(probD ~ ecospat.corrected, overlaps)
+myplot <- plotAnalysis(data = overlaps, 
+                       m = m, 
+                       xv = "ecospat.corrected", yv = "probD", 
+                       nodeNumber = "node1", showStats = T,
+                       xlabname = "Niche overlap of occurrence records", ylabname = "Niche overlap of model prediction"
+)
+
+# save
+ggsave(paste("Y:\\sister_nicheoverlap.png", sep = ""), plot = myplot,
+       width = 300, height = 210, units = 'mm')
+
+rm(myplot, m)
+
+
+

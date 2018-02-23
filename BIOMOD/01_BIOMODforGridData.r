@@ -68,8 +68,8 @@ data.ras <- (load(rasterpath) %>% get)
 # Species name
 spname <- colnames(climate.occ)[grepl(genus_name, colnames(climate.occ))]
 
-# Name rasters in raster stuck object
-#names(data.ras)[grepl("layer", names(data.ras))] <- spname
+# Remove species with < 1 presence records.
+spname <- spname[(climate.occ3[, spname] %>% colSums) > 1]
 
 # Remove NA
 climate.occ2 <- (is.na(climate.occ$bioclim1) == F) %>% climate.occ[.,]
@@ -83,7 +83,7 @@ myExpl <- stack(data.ras[[c("bioclim1", "bioclim6", "bioclim12", "bioclim15")]])
 ## Takes a while to run... Don't run on laptop! Slow!
 #########################################################
 
-try(lapply(spname, runBiomod, data = climate.occ3, myExpl = myExpl, folder.name = "23Feb18"),
+try(lapply(spname[17:length(spname)], runBiomod, data = climate.occ3, myExpl = myExpl, folder.name = "23Feb18"),
     silent = FALSE)
 
 ##########################################################

@@ -45,7 +45,9 @@ extractAges <- agesTipAndNode[rownames(agesTipAndNode) %in% volume$node1,]
 
 ageVolData <- cbind(extractAges, volume[order(volume$node1), ])
 
+colnames(ageVolData)[c(1,2,4)] <- c("speciesAge", "spname", "nicheVolume")
 
+write.csv(ageVolData[, c("node1", "spname", "nicheVolume", "speciesAge")], "NicheVolume_age.csv")
 ###################################################
 ### Dataframe of Clade niche overlap & phylogenetic distances
 ###################################################
@@ -54,11 +56,26 @@ dis <- data.frame(distance2)
 overlap <- read.csv(".//clade_schoennerD_acaena.csv")
 
 overlapPdData <- cbind(overlap, dis[dis$node %in% overlap$node1, ])[ ,c("node1", "node2", 
-                                                      "ecospat.corrected", "ecospat.uncorrected", "distance")]
+                                                      "ecospat.corrected", "distance")]
 
+colnames(overlapPdData)[3:4] <- c("nicheOverlap", "phyloDistance")
 
+# Species name of node
+overlapspnames <- (nodes$nodelabel %in% overlapPdData$node1) %>% rownames(nodes)[.]
+c(overlapspnames, rep(NA, nrow(overlapPdData) - length(overlapspnames)))
 
+overlapPdData <- mutate(overlapPdData, node1name = 
+         c(overlapspnames, rep(NA, nrow(overlapPdData) - length(overlapspnames)))
+         )
 
+# Show sister species list
+for(i in overlapPdData$node1){
+  print(i)
+  print(rownames(nodes)[allnodesister[[i]]])
+}
+ 
+
+write.csv(overlapPdData, "Nicheovrlap_PD.csv")
 #########################################################################
 ### Plots
 #########################################################################

@@ -13,7 +13,6 @@ load("Y://ensemblePrediction.data")
 
 source(".\\Acaena niche evolution\\06_Clade pairing.R")
 
-
 spname <- gsub("\\.", "\\_", names(pred)) %>% 
   gsub("var_", "var.", .) %>% 
   gsub("subsp_", "subsp.", .) %>% 
@@ -43,6 +42,9 @@ for(i in sispairs){
 ##### Compare Schoenner's D from two groups of probability and the one from occurrence records
 ############################################################################################################
 
+# Import data
+overlapPdData <- read.csv("Nicheovrlap_PD.csv")
+
 ### Node numbers of sister species pairs
 sispairs <- c(1,20,3,5,16)
 sisOverlapPd <- (overlapPdData$node1 %in% sispairs) %>% overlapPdData[., ]
@@ -51,10 +53,10 @@ overlaps <- cbind(sisOverlapPd, unlist(probD))
 colnames(overlaps)[ncol(overlaps)] <- "probD"
 
 
-m <- lm(probD ~ ecospat.corrected, overlaps)
+m <- lm(probD ~ nicheOverlap, overlaps)
 myplot <- plotAnalysis(data = overlaps, 
                        m = m, 
-                       xv = "ecospat.corrected", yv = "probD", 
+                       xv = "nicheOverlap", yv = "probD", 
                        nodeNumber = "node1", showStats = T,
                        xlabname = "Niche overlap of occurrence records", ylabname = "Niche overlap of model prediction"
 )

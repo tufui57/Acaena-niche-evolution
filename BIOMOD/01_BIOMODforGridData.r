@@ -50,9 +50,9 @@ setwd("Y://BIOMOD for Grid2")
 
 ### Set arguments
 # data frame of occurrence data and climate data
-datapath <- "Y://Acaena project//chionochloa_bioclim_landcover_1km.csv"
+datapath <- "Y://Acaena project//acaena_bioclim_landcover_1km.csv"
 # character string of target genus name
-genus_name <- "Chionochloa"
+genus_name <- "Acaena"
 # Raster of climate data
 rasterpath <- "Y:\\GIS map and Climate data\\Acaena_Bioclim_1km_NZTM.data"
 
@@ -83,7 +83,7 @@ myExpl <- stack(data.ras[[c("bioclim1", "bioclim6", "bioclim12", "bioclim15")]])
 ## Takes a while to run... Don't run on laptop! Slow!
 #########################################################
 
-try(lapply(spname[17:length(spname)], runBiomod, data = climate.occ3, myExpl = myExpl, folder.name = "23Feb18"),
+try(lapply(spname, runBiomod, data = climate.occ3, myExpl = myExpl, folder.name = "23Feb18"),
     silent = FALSE)
 
 ##########################################################
@@ -98,30 +98,30 @@ try(lapply(spname[17:length(spname)], runBiomod, data = climate.occ3, myExpl = m
 ## keep working directory same, because all data needed for restoration is saved there.
 setwd("Y://BIOMOD for Grid2")
 
-# get folder names
-folders <- list.dirs(getwd(), full.names = FALSE, recursive = F)
+# get folder names of target genus
+folders <- list.dirs(getwd(), full.names = FALSE, recursive = F) %>% grepl(genus_name, .) %>% list.dirs(getwd(), full.names = FALSE, recursive = F)[.]
 
 #########################################################
 ## Takes a while to run... slow but wait!
 #########################################################
 
 lapply(folders, biomodProjection_fromSavedBiomodModels,
-       modelname = "20Feb18",
-       proj.name = "22Feb18"
+       modelname = "23Feb18",
+       proj.name = "23Feb18"
        )
 
 #################################################################################################################
 ########################   Model evaluations     
 #################################################################################################################
 
-myBiomodModelOut <- biomodProjection_fromSavedBiomodModels(
-  folders[1],
-  modelname = "20Feb18",
-  proj.name = "22Feb18"
-)
-get_evaluations(myBiomodModelOut)
-get_calib_lines(myBiomodModelOut)
-get_variables_importance(myBiomodModelOut)
+# myBiomodModelOut <- biomodProjection_fromSavedBiomodModels(
+#   folders[1],
+#   modelname = "23Feb18",
+#   proj.name = "23Feb18"
+# )
+# get_evaluations(myBiomodModelOut)
+# get_calib_lines(myBiomodModelOut)
+# get_variables_importance(myBiomodModelOut)
 
 
 #################################################################################################################
@@ -131,7 +131,7 @@ get_variables_importance(myBiomodModelOut)
 ## PLOTS THE PROJECTIONS
 setwd("Y:\\BIOMOD for Grid2")
 # get folder names
-folders <- list.dirs(".\\", full.names = FALSE, recursive = F)
+folders <- list.dirs(getwd(), full.names = FALSE, recursive = F) %>% grepl(genus_name, .) %>% list.dirs(getwd(), full.names = FALSE, recursive = F)[.]
 
 projectionPlot <- function(spname, # species name
                            proj.name
@@ -155,24 +155,24 @@ projectionPlot <- function(spname, # species name
   
 }
 
-lapply(folders, projectionPlot, proj.name = "22Feb18")
+lapply(folders, projectionPlot, proj.name = "23Feb18")
 
 #################################################################################################################
 ########################        BIOMOD ensamble models
 #################################################################################################################
 
 # Get folder names
-folders <- list.dirs(".//", full.names = FALSE, recursive = F)
+folders <- list.dirs(getwd(), full.names = FALSE, recursive = F) %>% grepl(genus_name, .) %>% list.dirs(getwd(), full.names = FALSE, recursive = F)[.]
 
 ensembleModelling_projection <- function(spname, # species name
                                 folder.name,
                                 BIOMODproj.name, ensambleProj.name
 ) {
   # load projection data
-  files <- list.files(paste(".//", spname, "//proj_", proj.name, sep = ""), full.names = T)
+  files <- list.files(paste(".//", spname, "//proj_", ensambleProj.name, sep = ""), full.names = T)
   ensamblefile <- (files  %>% grepl("out$", .) %>% files[.])
   
-  if(file.exists(ensamblefile)){
+  if(length(ensamblefile) > 0){
     
     print("The ensamble prediction result file already exists.")
   
@@ -223,7 +223,7 @@ ensembleModelling_projection <- function(spname, # species name
 
 
 lapply(folders, ensembleModelling_projection, 
-       folder.name = "20Feb18", BIOMODproj.name = "22Feb18", ensambleProj.name = "22Feb18_ensamble")
+       folder.name = "23Feb18", BIOMODproj.name = "23Feb18", ensambleProj.name = "24Feb18_ensamble")
 
 
 ## Plot ensemble projection
@@ -244,4 +244,4 @@ EMprojectionPlot <- function(spname, # species name
 
 }
 
-lapply(folders, EMprojectionPlot, proj.name = "22Feb18_ensamble")
+lapply(folders, EMprojectionPlot, proj.name = "24Feb18_ensamble")

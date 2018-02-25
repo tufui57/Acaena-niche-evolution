@@ -1,6 +1,6 @@
 
 
-
+### Get a list of species names
 list_spname <- function(dat, # data frame with species names in its column names
                           genus_name, # genus name
                           separation # syntax separating genus and species name that you want to have in the returned object
@@ -10,6 +10,21 @@ list_spname <- function(dat, # data frame with species names in its column names
   return(spnames)
 }
 
+### Find species which has no occurrence records
+list_spWithNoOcc <- function(dat, # data frame of occurrence records
+                        genus_name # genus name
+                        ){
+  spnames <- (colnames(dat) %>% grepl(genus_name, .)) %>% colnames(dat)[.]
+  
+  noocc <- (colSums(data[,spnames]) == 0) %>% spnames[.]
+  
+  return(noocc)
+}
+
+
+### Clean species names
+# Syntax separating between subspecies, variant and form will be changed to "_", e.g., "Acaena_tesca_subsp._tesca"  
+# Gene tags must be removed from sepcies names
 clean_speciesname <- function(spnames # vector of character
 ){
   ### Acaena
@@ -123,6 +138,22 @@ get_sisterSpNames <- function(node, # Node number or species name
   sislist <- findSisterNode(tree)
   sis <- c(sislist[node], get_spname_from_nodeID(sislist[node], tree))
   return(sis)
+}
+
+count_spRichness <- function(i, # Node number
+                          tree
+){
+  # If the target node has no descendant species, i.e. the node is a terminal tip/node
+  if( getDescendants(tree, node = i) %>% length <= 1 ){
+    
+    print("The target node is terminal node")
+    return(1)
+    
+  }else{
+    
+    sprich <- getDescendants(tree, node = i) %in% 1:length(tree$tip.label) %>% sum
+    return(sprich)
+  }
 }
 
 

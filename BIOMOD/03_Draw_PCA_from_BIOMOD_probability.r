@@ -62,10 +62,27 @@ myplot <- plotAnalysis(data = overlaps,
 )
 
 # save
-ggsave(paste("Y:\\sister_nicheoverlap.png", sep = ""), plot = myplot,
+ggsave(paste("Y:\\sister_nicheoverlap_acaena.png", sep = ""), plot = myplot,
        width = 300, height = 210, units = 'mm')
 
 rm(myplot, m)
 
 
+#########################################################################
+### Sister species pairs' Phylogenetic distances ~ niche overlap of predictions
+#########################################################################
+
+m <- lm(probD ~ phyloDistance, overlaps)
+myplot <- plotAnalysis(data = overlaps, 
+                       m = m, 
+                       xv = "phyloDistance", yv = "probD", 
+                       nodeNumber = "node1", showStats = T,
+                       xlabname = "Phylogenetic distances", ylabname = "Niche overlap of model prediction"
+)
+
+# save
+ggsave(paste("Y:\\sister_predNicheoverlap_phyloDistance_acaena.png", sep = ""), plot = myplot,
+       width = 300, height = 210, units = 'mm')
+
+rm(myplot, m)
 

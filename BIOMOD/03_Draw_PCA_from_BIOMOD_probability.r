@@ -72,12 +72,12 @@ rm(myplot, m)
 ### Sister species pairs' Phylogenetic distances ~ niche overlap of predictions
 #########################################################################
 
-m <- lm(probD ~ phyloDistance, overlaps)
+m <- lm(phyloDistance ~ probD, overlaps)
 myplot <- plotAnalysis(data = overlaps, 
                        m = m, 
-                       xv = "phyloDistance", yv = "probD", 
+                       yv = "phyloDistance", xv = "probD", 
                        nodeNumber = "node1", showStats = T,
-                       xlabname = "Phylogenetic distances", ylabname = "Niche overlap of model prediction"
+                       ylabname = "Phylogenetic distances between sister species pairs", xlabname = "Niche overlap of model prediction"
 )
 
 # save

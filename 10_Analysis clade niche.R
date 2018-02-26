@@ -9,8 +9,10 @@ library(ape)
 ### Data preparation
 ##############################################################################
 
-source(".//Acaena niche evolution//06_Clade pairing.R")
-source(".//Acaena niche evolution//plotAnalysis_clade_niche.R")
+genus_name <- "Acaena"
+
+source(paste(".//", genus_name, " niche evolution//06_Clade_pairing.R", sep = ""))
+source(paste(".//Acaena niche evolution//plotAnalysis_clade_niche.R", sep = ""))
 
 #################################################################################
 ### Calculate node ages
@@ -79,6 +81,10 @@ write.csv(overlapPdData, "Nicheovrlap_PD.csv")
 #########################################################################
 ### Plots
 #########################################################################
+library(dplyr)
+
+ageVolData <- read.csv("NicheVolume_age.csv")
+overlapPdData <- read.csv("Nicheovrlap_PD.csv")
 
 #########################################################################
 ### Sister species pairs' Phylogenetic distances ~ niche overlap of occurrence records
@@ -88,11 +94,11 @@ write.csv(overlapPdData, "Nicheovrlap_PD.csv")
 sispairs <- c(1,20,3,5,16)
 sisOverlapPd <- (overlapPdData$node1 %in% sispairs) %>% overlapPdData[., ]
 
-m <- lm(distance ~ ecospat.corrected, sisOverlapPd)
+m <- lm(phyloDistance ~ nicheOverlap, sisOverlapPd)
 
 myplot <- plotAnalysis(data = sisOverlapPd, 
                        m = m, 
-                       xv = "ecospat.corrected", yv = "distance", 
+                       xv = "nicheOverlap", yv = "phyloDistance", 
                        nodeNumber = "node1", showStats = T,
                        xlabname = "Niche overlap of occurrence records", ylabname = "Phylogenetic distances between sister species pairs"
 )
@@ -108,16 +114,13 @@ rm(myplot, m)
 ### Phylogenetic distances ~ niche overlap of occurrence records
 #########################################################################
 
-### Node numbers of sister species pairs
-sispairs <- c(1,20,3,5,16)
-
 ancSisNode <- sapply(sispairs, function(i){
   
   ancestor <- acaena$edge[which(i == acaena$edge[, 2])]
   ancestorSisNode <- distance2[distance2[,"node"] == ancestor, "sisterNode"]
   return(ancestorSisNode)
   
-  }
+}
 )
 
 
@@ -126,14 +129,14 @@ ancsisOverlapPd <- rbind(
   ((overlapPdData$node2 %in% ancSisNode) %>% overlapPdData[., ])
 )
 
-dup <- duplicated(ancsisOverlapPd$ecospat.corrected) %>% which
+dup <- duplicated(ancsisOverlapPd$nicheOverlap) %>% which
 ancsisOverlapPd <- ancsisOverlapPd[-dup, ]
 
-m <- lm(distance ~ ecospat.corrected, sisOverlapPd)
+m <- lm(phyloDistance ~ nicheOverlap, sisOverlapPd)
 
 myplot <- plotAnalysis(data = sisOverlapPd, 
                        m = m, 
-                       xv = "ecospat.corrected", yv = "distance", 
+                       xv = "nicheOverlap", yv = "phyloDistance", 
                        nodeNumber = "node1", showStats = T,
                        xlabname = "Niche overlap of occurrence records", ylabname = "Phylogenetic distances between sister species pairs"
 )
@@ -151,14 +154,14 @@ rm(myplot, m)
 ### Eliminate outlier, SAC, of clade age
 
 overlapPd <- overlapPdData[which(overlapPdData$node1 != 19), ]
-m <- lm(distance ~ ecospat.corrected, overlapPd)
+m <- lm(phyloDistance ~ nicheOverlap, overlapPd)
 
 myplot <- plotAnalysis(data = overlapPd, 
                        m = m, 
-                       xv = "ecospat.corrected", yv = "distance", 
+                       xv = "nicheOverlap", yv = "phyloDistance", 
                        nodeNumber = "node1", showStats = T,
                        xlabname = "Niche overlap of occurrence records", ylabname = "Phylogenetic distances between clades"
-                       )
+)
 
 # save
 ggsave(paste("Y:\\clade_pd_nicheoverlap_legend.png", sep = ""), plot = myplot,
@@ -168,9 +171,9 @@ rm(myplot, m)
 
 
 ### Leave outlier of clade age in data
-m <- lm(distance ~ ecospat.corrected, overlapPdData)
+m <- lm(phyloDistance ~ nicheOverlap, overlapPdData)
 
-myplot <- plotAnalysis(data = overlapPdData, m = m, xv = "ecospat.corrected", yv = "distance",
+myplot <- plotAnalysis(data = overlapPdData, m = m, xv = "nicheOverlap", yv = "phyloDistance",
                        nodeNumber = "node1", showStats = T,
                        xlabname = "Niche overlap of occurrence records", ylabname = "Phylogenetic distances between clades")
 
@@ -185,26 +188,26 @@ rm(myplot, m)
 #########################################################################
 
 ### Eliminate outlier
-outlier <- which(max(ageVolData$value) == ageVolData$value)
+outlier <- which(max(ageVolData$speciesAge) == ageVolData$speciesAge)
 ageVol <- ageVolData[-outlier,]
 
-m <- lm(value ~ ecospat.corrected, ageVol)
+m <- lm(speciesAge ~ nicheVolume, ageVol)
 
-myplot <- plotAnalysis(data=ageVolData[-outlier,], m=m, xv = "ecospat.corrected", yv = "value", 
+myplot <- plotAnalysis(data=ageVolData[-outlier,], m=m, xv = "nicheVolume", yv = "speciesAge", 
                        nodeNumber = "node1", showStats = T,
                        xlabname = "Niche volume of occurrence records", ylabname = "Clade age")
 
 # save
-ggsave(paste("Y:\\clade_age_nicheVolume_legend.png", sep = ""), plot = myplot,
+ggsave(paste("Y:\\clade_age_nicheVolume_legend_acaena.png", sep = ""), plot = myplot,
        width = 300, height = 210, units = 'mm')
 
 rm(myplot, m)
 
 
 ### Leave outlier
-m <- lm(value ~ ecospat.corrected, ageVolData)
+m <- lm(speciesAge ~ nicheVolume, ageVolData)
 
-myplot <- plotAnalysis(data=ageVolData, m=m, xv = "ecospat.corrected", yv = "value", 
+myplot <- plotAnalysis(data=ageVolData, m=m, xv = "nicheVolume", yv = "speciesAge", 
                        nodeNumber = "node1", showStats = T,
                        xlabname = "Niche volume of occurrence records", ylabname = "Clade age")
 

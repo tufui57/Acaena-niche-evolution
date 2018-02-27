@@ -8,8 +8,7 @@ load(".//cladePairData.data")
 setwd(".//Acaena niche evolution")
 
 library(ecospat)
-# tidyverse loads too much DLLs. Load tidyr instead.
-library(tidyr)
+library(dplyr)
 library(nichePlot)
 
 ###################################################
@@ -72,7 +71,7 @@ nichevoldata <- SchonnerDdataframeFormat(nichevol)
 ###### Find which nodes I haven't calculated niche volume
 # I need another clade in each pair, but I need avoid duplicated one. 
 
-source("06_Clade pairing.R")
+source("06_Clade_pairing.R")
 
 # Total number of nodes in tree 
 noTreeNode <- max(

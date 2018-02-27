@@ -58,74 +58,38 @@ library(ggplot2)
 
 dmat <- read.csv("Y:\\Niche change of lineages\\Niche evolution of open habitat species in islands\\ShonnerD_phylogenetic_distances.csv")
 
-plotAnalysis <- function(data, 
-                         m, # linear model object
-                         xv, yv, # column names of responce and explanatory variable
-                         xlabname, ylabname, # axes names for plot
-                         showStats = T # TRUE; Show p value and slope of linear model and colour points, FALSE; No stat values and black points
-){
-  
-  if(showStats == T){
-    myplot <- ggplot(data, aes_string(x = xv, y = yv, colour = "spname1")) +
-      geom_point(aes(colour = spname1)) +
-      # change xy labels
-      labs(x = xlabname, y = ylabname) +
-      # change text size
-      theme(text = element_text(size = 20),
-            axis.text.x = element_text(size = 20)) +
-      # drow LM line & confident intervals 
-      stat_smooth(method = "lm", col = "red") +
-      # show stats result as title
-      labs(title = paste("Adj R2 =", signif(summary(m)$adj.r.squared, digits = 2),
-                         "Intercept =", signif(m$coef[[1]], 2),
-                         " Slope =", signif(m$coef[[2]], 2),
-                         " P =", signif(summary(m)$coef[2, 4], 2))) +
-      theme(panel.background = element_rect(fill = "gray95"))
-  } else {
-    myplot <- ggplot(data, aes_string(x = xv, y = yv)) +
-      geom_point(aes(colour = spname1)) +
-      # change xy labels
-      labs(x = xlabname, y = ylabname) +
-      # change text size
-      theme(text = element_text(size = 20),
-            axis.text.x = element_text(size = 20)) +
-      # drow LM line & confident intervals 
-      stat_smooth(method = "lm", col = "red") +
-      theme(panel.background = element_rect(fill = "gray95"), legend.position="none")
-  }
-  return(myplot)
-}
+source(paste(".//Acaena niche evolution//plotAnalysis_clade_niche.R", sep = ""))
 
 #########################################################################
 ### Phylogenetic distances ~ niche overlap of occurrence records
 #########################################################################
 
-m <- lm(pd~ecospatD, dmat)
-
-myplot <- plotAnalysis(data=dmat, m=m, xv = "ecospatD", yv = "pd", showStats = F,
-                       xlabname = "Schonner's D of occurrence records", ylabname = "Phylogenetic distances")
+myplot <- plotAnalysis(data=dmat, xv = "ecospatD", yv = "pd", 
+                       showStats = F,
+                       xlabname = "Schonner's D of occurrence records",
+                       ylabname = "Phylogenetic distances")
 
 # save
 ggsave(paste("Y:\\pd_occD_nolegend.png", sep = ""), plot = myplot,
        width = 300, height = 210, units = 'mm')
 
-rm(myplot, m)
+rm(myplot)
 
 
 #########################################################################
 ### Phylogenetic distances ~ niche overlap of Plateau prediction
 #########################################################################
 
-m <- lm(pd~PlateauD, dmat)
-
-myplot <- plotAnalysis(data=dmat, m=m, xv = "PlateauD", yv = "pd", showStats = F,
-                       xlabname = "Schonner's D of habitat suitability estimated by Plateau", ylabname = "Phylogenetic distances")
+myplot <- plotAnalysis(data=dmat, xv = "PlateauD", yv = "pd", 
+                       showStats = F,
+                       xlabname = "Schonner's D of habitat suitability estimated by Plateau",
+                       ylabname = "Phylogenetic distances")
 
 # save
 ggsave(paste("Y:\\pd_PlateauD_nolegend.png", sep = ""), plot = myplot,
        width = 300, height = 210, units = 'mm')
 
-rm(myplot, m)
+rm(myplot)
 
 
 ########################################################################################
@@ -177,48 +141,46 @@ colnames(dat2)[1] <- "spname1"
 ### Node ages ~ niche volume
 #########################################################################
 
-m <- lm(occ.corrected.D ~ sp.age, dat2)
-
-myplot <- plotAnalysis(data=dat2, m=m, xv = "occ.corrected.D", yv = "sp.age", showStats = F,
+myplot <- plotAnalysis(data=dat2, 
+                       xv = "occ.corrected.D", yv = "sp.age",
+                       showStats = T,
                        xlabname = "Species niche volume", ylabname = "Species age")
 
 # save
 ggsave(paste("Y:\\nicheVolume_spAge_noLagend.png", sep = ""), plot = myplot,
        width = 300, height = 210, units = 'mm')
 
-rm(myplot, m)
-
-summary(lm(occ.corrected.D ~ sp.age, dat))
-
+rm(myplot)
 
 
 #########################################################################
 ### Proportion of Secondary Open Habitat ~ niche volume
 #########################################################################
-
-m <- lm(proportionSecondaryHabitat ~ occ.corrected.D, dat2)
-
-myplot <- plotAnalysis(data=dat2, m=m, xv = "proportionSecondaryHabitat", yv = "occ.corrected.D", showStats = T,
-                       xlabname = "Proportion of secondary open habitat", ylabname = "Species age")
+myplot <- plotAnalysis(data=dat2,
+                       xv = "proportionSecondaryHabitat", yv = "occ.corrected.D", 
+                       showStats = T,
+                       xlabname = "Proportion of secondary open habitat", 
+                       ylabname = "Species age")
 
 # save
 ggsave(paste("Y:\\acaena_proportionSecondary_spNicheVolume.png", sep = ""), plot = myplot,
        width = 300, height = 210, units = 'mm')
 
-rm(myplot, m)
+rm(myplot)
 
 
 #########################################################################
 ### Proportion of Secondary Open Habitat ~ species age
 #########################################################################
 
-m <- lm(proportionSecondaryHabitat ~ sp.age, dat2)
-
-myplot <- plotAnalysis(data=dat2, m=m, xv = "proportionSecondaryHabitat", yv = "sp.age", showStats = T,
-                       xlabname = "Proportion of secondary open habitat", ylabname = "Species age")
+myplot <- plotAnalysis(data=dat2, 
+                       xv = "proportionSecondaryHabitat", yv = "sp.age", 
+                       showStats = T,
+                       xlabname = "Proportion of secondary open habitat", 
+                       ylabname = "Species age")
 
 # save
 ggsave(paste("Y:\\acaena_proportionSecondary_spAge.png", sep = ""), plot = myplot,
        width = 300, height = 210, units = 'mm')
 
-rm(myplot, m)
+rm(myplot)

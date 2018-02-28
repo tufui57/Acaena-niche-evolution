@@ -49,9 +49,11 @@ makeTag_separate <- function(data, # vector of full species names
 ){
   ### Import species name codes
   spname <- grepl(genus_name, data) %>% data[.]
-  codes <- gsub(paste(genus_name, separate, sep=""), "", spname) %>% 
+  codes <- gsub(paste(genus_name, separate, sep = ""), "", spname) %>% 
     gsub(paste("subsp.", separate, sep = ""), "", .) %>% 
-    gsub(paste("var.", separate, sep = ""), "", .)
+    gsub(paste("var.", separate, sep = ""), "", .) %>%     
+    gsub(paste("subsp", separate, sep = ""), "", .) %>% 
+    gsub(paste("var", separate, sep = ""), "", .)
   
   spname <- (codes %>% substring(., 1, last = 3) %>% mutate(as_tibble(spname), tag = .))
   colnames(spname)[1] <- "X"

@@ -9,9 +9,13 @@ plotAnalysis <- function(data,
                          showStats = FALSE, # TRUE; Show p value and slope of linear model and colour points, FALSE; No stat values and black points
                          label.point = FALSE # TRUE; Show labels above points
                          ){
+  genuscol <- (sisOverlapPd %>% sapply(., class) == "factor" | sisOverlapPd %>% sapply(., class) == "character")
+  name <- as.character(sisOverlapPd[1, genuscol]) %>% strsplit(., "_") %>% .[[1]]
+  genus_name <- name[1]
   
   myplot <- ggplot(data, aes_string(x = xv, y = yv)) +
     geom_point() +
+    ggtitle(genus_name) +
     # change xy labels
     labs(x = xlabname, y = ylabname) +
     # change text size
@@ -28,7 +32,7 @@ plotAnalysis <- function(data,
     
     myplot <- myplot +
       # show stats result as title
-      labs(title = paste("Adj R2 =", signif(summary(m)$adj.r.squared, digits = 2),
+      labs(title = paste(genus_name, "Adj R2 =", signif(summary(m)$adj.r.squared, digits = 2),
                          "Intercept =", signif(m$coef[[1]], 2),
                          " Slope =", signif(m$coef[[2]], 2),
                          " P =", signif(summary(m)$coef[2, 4], 2)))
@@ -44,4 +48,5 @@ plotAnalysis <- function(data,
   
   return(myplot)
 }
+
 

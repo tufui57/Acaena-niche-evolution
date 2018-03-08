@@ -159,3 +159,12 @@ count_spRichness <- function(i, # Node number
 }
 
 
+get_closestAncestorNode <- function(node, # Node number or species name
+                              tree
+){
+  
+  tree2 <- extractTree(tree)
+  return(ancestor(tree2, node))
+}
+
+

@@ -134,3 +134,20 @@ generateClimateDataOfClades <- function(i, # node number
   
   
 }
+
+get_climatedata_of_auntNode <- function(i # node ID of target sister species
+                                        ){
+  
+  ## Find parent node of target sister species pair
+  ancestor <- tree$edge[which(i == tree$edge[, 2])]
+  ancestorSisNode <- distance2[distance2[, "node"] == ancestor, "sisterNode"]
+  
+  print(paste("Sister node of parent node of target sister species pair is", ancestorSisNode))
+  
+  ## Niche of sister node of ancestor node
+  ansSisScore <- generateClimateDataOfTargetNode(
+    ancestorSisNode, tree, allnodesister, scores, nodes, tips)
+  ansSisScore2 <- ansSisScore[ansSisScore[, "targetClade"] == 1, c("PC1", "PC2", "targetClade")]
+  
+  return(ansSisScore2)
+}

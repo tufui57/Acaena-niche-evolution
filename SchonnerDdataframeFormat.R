@@ -3,7 +3,9 @@
 # Schonner's D dataframe formatting
 ##########################################
 
-SchonnerDdataframeFormat <- function(scho # List of correlated/uncorrelated Schoenner's D and I
+SchonnerDdataframeFormat <- function(scho, # List of correlated/uncorrelated Schoenner's D and I
+                                     colname = c("ecospat.corrected.D", "ecospat.uncorrected.D"), # names of columns
+                                     chooseIndex = "D" # choose overlap index from D and I
                                      ){
 
   scholist <- lapply(1:length(scho), function(i){
@@ -20,10 +22,11 @@ SchonnerDdataframeFormat <- function(scho # List of correlated/uncorrelated Scho
       x <- data.frame(scho[[i]])
       
       # Add colnames
-      colnames(x) <- c("ecospat.corrected", "ecospat.uncorrected")
+      colnames(x) <- colname
       
-      # Get Shoenner's D. I don't use I.
-      return(x["D",])
+      # Get the index you need
+      return(x[chooseIndex, ])
+      
     }
     }
   )
@@ -32,11 +35,12 @@ SchonnerDdataframeFormat <- function(scho # List of correlated/uncorrelated Scho
   scholist <- do.call(rbind, scholist)
   nodeNo <- sapply(cladedata, "[[", 5) %>% strsplit(., "\ ")
   
-  if((scholist$ecospat.corrected == 999) %>% sum == 0){
+  if(((scholist[colname[1]] == 999) %>% sum) == 0){
     
     # If there is a NA row, the shoenner's D list is niche volume list.  
     scholist$node1 <- as.numeric(do.call(rbind, lapply(nodeNo, "[[",1)))
     scholist$node2 <- as.numeric(do.call(rbind, lapply(nodeNo, "[[",2)))
+    
   }else{
     scholist$node1 <- 1:length(scho)
   }

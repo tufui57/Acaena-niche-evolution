@@ -7,7 +7,8 @@ plotAnalysis <- function(data,
                          xlabname, ylabname, # axes names for plot
                          nodeNumbercol = NULL,
                          showStats = FALSE, # TRUE; Show p value and slope of linear model and colour points, FALSE; No stat values and black points
-                         label.point = FALSE # TRUE; Show labels above points
+                         label.point = FALSE, # TRUE; Show labels above points
+                         cex = 10 # title and axis label size
                          ){
   genuscol <- (sisOverlapPd %>% sapply(., class) == "factor" | sisOverlapPd %>% sapply(., class) == "character")
   name <- as.character(sisOverlapPd[1, genuscol]) %>% strsplit(., "_") %>% .[[1]]
@@ -19,8 +20,8 @@ plotAnalysis <- function(data,
     # change xy labels
     labs(x = xlabname, y = ylabname) +
     # change text size
-    theme(text = element_text(size = 20),
-          axis.text.x = element_text(size = 20)) +
+    theme(text = element_text(size = cex),
+          axis.text.x = element_text(size = cex)) +
     # drow LM line & confident intervals 
     stat_smooth(method = "lm", col = "red") +
     theme(panel.background = element_rect(fill = "gray95"), legend.position="none")

@@ -3,6 +3,7 @@
 ########################################################
 
 plotAnalysis <- function(data,
+                         genus_name, # Name of genus as plot title
                          xv, yv, # column names of responce and explanatory variable
                          xlabname, ylabname, # axes names for plot
                          nodeNumbercol = NULL,
@@ -10,9 +11,7 @@ plotAnalysis <- function(data,
                          label.point = FALSE, # TRUE; Show labels above points
                          cex = 10 # title and axis label size
                          ){
-  genuscol <- (sisOverlapPd %>% sapply(., class) == "factor" | sisOverlapPd %>% sapply(., class) == "character")
-  name <- as.character(sisOverlapPd[1, genuscol]) %>% strsplit(., "_") %>% .[[1]]
-  genus_name <- name[1]
+  
   
   myplot <- ggplot(data, aes_string(x = xv, y = yv)) +
     geom_point() +

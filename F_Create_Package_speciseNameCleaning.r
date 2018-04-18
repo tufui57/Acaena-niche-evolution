@@ -1,6 +1,8 @@
 
+###############################################################################################
+### Get a list of species names from data frame with species names in its column names
+###############################################################################################
 
-### Get a list of species names
 list_spname <- function(dat, # data frame with species names in its column names
                           genus_name, # genus name
                           separation # syntax separating genus and species name that you want to have in the returned object
@@ -10,7 +12,10 @@ list_spname <- function(dat, # data frame with species names in its column names
   return(spnames)
 }
 
+#############################################################################
 ### Find species which has no occurrence records
+#############################################################################
+
 list_spWithNoOcc <- function(dat, # data frame of occurrence records
                         genus_name # genus name
                         ){
@@ -21,8 +26,10 @@ list_spWithNoOcc <- function(dat, # data frame of occurrence records
   return(noocc)
 }
 
-
+#############################################################################
 ### Clean species names
+#############################################################################
+
 # Syntax separating between subspecies, variant and form will be changed to "_", e.g., "Acaena_tesca_subsp._tesca"  
 # Gene tags must be removed from sepcies names
 clean_speciesname <- function(spnames # vector of character
@@ -42,6 +49,10 @@ clean_speciesname <- function(spnames # vector of character
   
   return(spnames)
 }
+
+#############################################################################
+### Create species name tag from species name
+#############################################################################
 
 makeTag_separate <- function(data, # vector of full species names 
                              genus_name, # genus name should be got rid of
@@ -75,6 +86,9 @@ makeTag_separate <- function(data, # vector of full species names
   
 }
 
+#############################################################################
+### Get the species name from node number
+#############################################################################
 
 get_spname_from_nodeID <- function(node, # node ID number
                                    tree
@@ -92,12 +106,17 @@ get_spname_from_nodeID <- function(node, # node ID number
   return(nodeName)
 }
 
+#############################################################################
+### Get the node number from species name
+#############################################################################
+
 get_nodeID_from_spname <- function(spname, # species name
                        tree
                        ){
+  # Get a list of tip (species) names from tree
   tips <- tree$tip.label
   
-  ## first get the node numbers of the tips
+  ## Get the node numbers of the tips
   nodes <- data.frame(sapply(tips, function(x,y) which(y == x), y = tree$tip.label))
   colnames(nodes) <- "nodelabel"
   
@@ -106,10 +125,28 @@ get_nodeID_from_spname <- function(spname, # species name
   nodeID <- (rownames(nodes) == spname) %>% nodes[.,]
 
   return(nodeID)
-  }
+}
+
+#############################################################################
+### Get the node number of the closest ancestor (parent) of the node
+#############################################################################
+
+library(phylobase)
+get_parentNodeID <- function(node, # Node number or species name. Both work.
+                                    tree
+){
+  
+  # Get "phylo4" object from "phylo" object
+  tree2 <- extractTree(tree)
+  return(ancestor(tree2, node))
+}
 
 
-list_sisterSpPairs <- function(tree # Phylogeny tree
+########################################################
+### Get a list of sister species pairs in the tree
+########################################################
+
+list_sisterSpPairs <- function(tree # Phylogeny tree object
                                    ){
   # find sister node of a target species
   tipssister <- findSisterNode(tree)
@@ -129,18 +166,26 @@ list_sisterSpPairs <- function(tree # Phylogeny tree
 
   }
 
+########################################################
+### Get a name of sister species of the node
+########################################################
 
 get_sisterSpNames <- function(node, # Node number or species name
                               tree
                               ){
   if(is.character(node)){
-    node <- get_nodeID(node, tree)
+    node <- get_nodeID_from_spname(node, tree)
   }
   
   sislist <- findSisterNode(tree)
   sis <- c(sislist[node], get_spname_from_nodeID(sislist[node], tree))
   return(sis)
+  
 }
+
+########################################################
+### Count the number of species within the clade
+########################################################
 
 count_spRichness <- function(i, # Node number
                           tree
@@ -158,13 +203,14 @@ count_spRichness <- function(i, # Node number
   }
 }
 
+########################################################
+### Get a node ID of the closest clade (aunt)
+########################################################
 
-get_closestAncestorNode <- function(node, # Node number or species name
-                              tree
+get_auntNodeID <- function(node, # Node number or species name. Both work.
+                             tree
 ){
-  
-  tree2 <- extractTree(tree)
-  return(ancestor(tree2, node))
+  parentnode <- get_parentNodeID(node, tree)
+  aunt <- getSisters(tree, parentnode)
+  return(aunt)
 }
-
-

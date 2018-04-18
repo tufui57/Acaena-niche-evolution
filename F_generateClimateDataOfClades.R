@@ -1,15 +1,18 @@
+###########################################################################
+### Get climate data of single species from node ID number
+###########################################################################
+
 
 generateClimateDataOfTargetNode <- function(i, # Node number
-                                        acaena, # tree object
+                                        tree, # tree object
                                         allnodesister, # List of discendant nodes of its sister node
                                         scores, # background data containing occurrence data of target taxa
                                         nodes,
                                         tips
                                         ){
-
   
   # If the target node has no descendant species, i.e. the node is a terminal tip/node
-  if( getDescendants(acaena, node = i) %>% length <= 1 ){
+  if( getDescendants(tree, node = i) %>% length <= 1 ){
     
     # If the target node has no occurrence records
     if(colnames(scores) %in% rownames(nodes)[i] %>% sum == 0){
@@ -23,7 +26,7 @@ generateClimateDataOfTargetNode <- function(i, # Node number
     }
   }else{
     
-    descendants <- getDescendants(acaena, node = i) %>% rownames(nodes)[.]
+    descendants <- getDescendants(tree, node = i) %>% rownames(nodes)[.]
     descendantColumn <- colnames(scores) %in% descendants
     
     if(sum(descendantColumn) > 1){
@@ -46,8 +49,14 @@ generateClimateDataOfTargetNode <- function(i, # Node number
 }
 
 
+
+
+###########################################################################
+### Get climate data of all species within the node from node ID number
+###########################################################################
+
 generateClimateDataOfClades <- function(i, # node number
-                                        acaena, # tree object
+                                        tree, # tree object
                                         allnodesister, # List of discendant nodes of its sister node
                                         scores, # background data containing occurrence data of target taxa
                                         nodes,
@@ -69,7 +78,7 @@ generateClimateDataOfClades <- function(i, # node number
   ## Find columns of species in the target node
   ################################################
   
-  cladeScore <- generateClimateDataOfTargetNode(i, acaena, allnodesister, scores, nodes, tips)
+  cladeScore <- generateClimateDataOfTargetNode(i, tree, allnodesister, scores, nodes, tips)
   
   ################################################
   ## Find columns of species in the sister node
@@ -103,13 +112,13 @@ generateClimateDataOfClades <- function(i, # node number
   nodeNumber = i
   # Species name codes
   # Get descendant species name of the node
-  if( getDescendants(acaena, node = i) %>% length <= 1 ){
+  if( getDescendants(tree, node = i) %>% length <= 1 ){
     
     descendantColumn <- (colnames(scores) == rownames(nodes)[i])
     
     }else{
     
-    descendants <- getDescendants(acaena, node = i) %>% rownames(nodes)[.]
+    descendants <- getDescendants(tree, node = i) %>% rownames(nodes)[.]
     descendantColumn <- colnames(scores) %in% descendants
     
   }
@@ -135,7 +144,13 @@ generateClimateDataOfClades <- function(i, # node number
   
 }
 
-get_climatedata_of_auntNode <- function(i # node ID of target sister species
+##########################################################################################################################
+### Get climate data of aunt node of sister species from the node ID number of target sister species
+##########################################################################################################################
+
+get_climatedata_of_auntNode <- function(i, # node ID of target sister species
+                                        tree, # tree object
+                                        scores # background data containing occurrence data of target taxa
                                         ){
   
   ## Find parent node of target sister species pair

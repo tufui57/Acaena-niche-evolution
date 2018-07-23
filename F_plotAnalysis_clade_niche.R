@@ -23,7 +23,10 @@ plotAnalysis <- function(data,
           axis.text.x = element_text(size = cex)) +
     # drow LM line & confident intervals 
     stat_smooth(method = "lm", col = "red") +
-    theme(panel.background = element_rect(fill = "gray95"), legend.position="none")
+    theme(panel.background = element_rect(fill = "gray95"), legend.position="none") +
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+          panel.background = element_blank(), axis.line = element_line(colour = "black"))
+  
   
   if(showStats == TRUE){
 

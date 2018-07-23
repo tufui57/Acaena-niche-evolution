@@ -10,7 +10,7 @@ library(phytools)
 # Output of TreeAnnotator
 # TreeAnnotator output is the one chosen among tree candidates estimated on the process of MCMC sampling.
 # Species names must not have space. Replace space with _ (underscore).
-acaena <- read.nexus("Y:\\Niche change of lineages\\Phylogenetic data and trees\\From Angela\\NZ_Acaena_BEAST_output_6gene.tree")
+acaena <- read.nexus("Y:\\Niche change of lineages\\Niche evolution of open habitat species in islands\\Phylogenetic data and trees\\From Angela\\NZ_Acaena_BEAST_output_6gene.tree")
 
 ########################################################################################
 ### Phylogenetic distances

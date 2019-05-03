@@ -10,11 +10,11 @@ genus_name = "Acaena"
 genus_tag = "acaena"
 
 ### Generate data, if no data file for analysis existed.
-source(".//Acaena niche evolution//Acaena manuscript//1st chpater_Acaena project//scripts//04_2_table_of_landcoverHistory_for_analyses.R")
-source(".//Acaena niche evolution//Acaena manuscript//1st chpater_Acaena project//scripts//04_2_calculate_indices_for_analyses.R")
+source(".//Acaena niche evolution//scripts//04_2_table_of_landcoverHistory_for_analyses.R")
+source(".//Acaena niche evolution//scripts//04_2_calculate_indices_for_analyses.R")
 
 ### Import data
-d <- read.csv(paste(".//", genus_name, "_data_analyses.csv", sep = ""))
+d <- read.csv(paste("Y://", genus_name, "_data_analyses.csv", sep = ""))
 
 ### Library & source
 library(dplyr)
